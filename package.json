@@ -1,0 +1,21 @@
+{
+  "name": "logus-debate",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "motion": "^12.38.0",
+    "scss": "^0.2.4",
+    "swiper": "^11.0.0"
+  },
+  "devDependencies": {
+    "sass-embedded": "^1.99.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.10"
+  }
+}
