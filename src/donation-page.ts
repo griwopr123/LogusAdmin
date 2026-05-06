@@ -1,55 +1,132 @@
+/** Aizvietojiet ar saviem rekvizītiem / Replace with your real bank details */
+const BANK_DETAILS = {
+  recipient: 'Biedrība "LOGUS Debate"',
+  iban: 'LV00HABA0000000000000',
+  bankLv: 'Swedbank AS',
+  bankEn: 'Swedbank AS',
+  bic: 'HABALV22',
+}
+
+export function setupDonationCopy(): void {
+  document.querySelectorAll<HTMLButtonElement>('.donation-copy-btn').forEach((btn) => {
+    const targetSel = btn.getAttribute('data-copy-target')
+    if (!targetSel) return
+    btn.addEventListener('click', async () => {
+      const el = document.querySelector<HTMLElement>(targetSel)
+      const text = el?.textContent?.replace(/\s/g, '') ?? ''
+      if (!text) return
+      const labelCopied = btn.dataset.copiedLabel ?? 'Copied'
+      const prevText = btn.textContent ?? ''
+      try {
+        await navigator.clipboard.writeText(text)
+        btn.textContent = labelCopied
+        setTimeout(() => {
+          btn.textContent = prevText
+        }, 1800)
+      } catch {
+        /* ignore */
+      }
+    })
+  })
+}
+
 export function renderDonationPage(lang: string): string {
   const isLv = lang === 'lv'
 
   return /* html */ `
-    <section class="donation-page" id="donation">
-      <div class="donation-hero">
-        <p class="donation-kicker">${isLv ? 'Atbalsts' : 'Support'}</p>
-        <h2>${isLv ? 'Palīdzi augt debašu kopienai Latvijā' : 'Help grow the debate community in Latvia'}</h2>
-        <p class="donation-lead">
-          ${isLv
-            ? 'Katrs ziedojums palīdz organizēt turnīrus, mācības un stipendijas jauniešiem.'
-            : 'Every donation helps us run tournaments, training programs, and scholarships for young debaters.'}
-        </p>
-        <div class="donation-hero-actions">
-          <a class="donation-cta" href="mailto:info@logusdebate.lv">${isLv ? 'Sazināties ar mums' : 'Contact us'}</a>
-          <p class="donation-hero-note">
+    <section class="donation-page donation-page--dark" id="donation">
+      <header class="donation-hero" aria-labelledby="donation-heading">
+        <div class="donation-hero-media" role="presentation"></div>
+        <div class="donation-hero-scrim" aria-hidden="true"></div>
+        <div class="donation-hero-inner">
+          <p class="donation-kicker">${isLv ? 'Ziedojums' : 'Donate'}</p>
+          <h1 id="donation-heading" class="donation-heading">
+            ${isLv ? 'Atbalsti debašu izaugsmi Latvijā' : 'Support debate in Latvia'}
+          </h1>
+          <p class="donation-subtitle">
             ${isLv
-              ? 'Ikviens ziedojums tiek novirzīts mācībām, turnīriem un stipendijām.'
-              : 'Every gift is invested in training, tournaments, and scholarships.'}
+              ? 'Tavs ieguldījums palīdz rīkot turnīrus, nodrošināt treniņus un atvērt debašu vidi jauniešiem visā valstī.'
+              : 'Your contribution helps run tournaments, training, and open debate to young people across the country.'}
           </p>
         </div>
-      </div>
+      </header>
 
-      <div class="donation-grid">
-        <article class="donation-card donation-card-highlight">
-          <h3>${isLv ? 'Kāpēc ziedot?' : 'Why donate?'}</h3>
-          <ul>
-            <li>${isLv ? 'Bezmaksas nodarbības skolēniem reģionos' : 'Free training sessions for students in regions'}</li>
-            <li>${isLv ? 'Nacionālie un starptautiskie turnīri' : 'National and international tournaments'}</li>
-            <li>${isLv ? 'Mentoru programma jaunajiem debatieriem' : 'Mentorship program for beginner debaters'}</li>
-          </ul>
-        </article>
+      <div class="donation-page-body">
+        <p class="donation-note">
+          ${isLv
+            ? 'Maksājumu ar karti nepiedāvājam — ziedojumu var nosūtīt tikai ar bankas pārskaitījumu uz zemāk norādīto kontu.'
+            : 'We do not accept card payments — please use a bank transfer to the account below.'}
+        </p>
 
-        <article class="donation-card donation-card-accent">
-          <h3>${isLv ? 'Kā ziedot' : 'How to donate'}</h3>
-          <dl class="donation-details">
-            <div>
-              <dt>${isLv ? 'Saņēmējs:' : 'Recipient:'}</dt>
-              <dd>LOGUS Debate</dd>
+        <article class="donation-bank-card">
+          <h2 class="donation-bank-title">${isLv ? 'Bankas rekvizīti' : 'Bank details'}</h2>
+
+          <dl class="donation-bank-rows">
+            <div class="donation-bank-row">
+              <dt>${isLv ? 'Saņēmējs' : 'Recipient'}</dt>
+              <dd>${BANK_DETAILS.recipient}</dd>
             </div>
-            <div>
-              <dt>IBAN:</dt>
-              <dd>LV00HABA0000000000000</dd>
+            <div class="donation-bank-row donation-bank-row--iban">
+              <dt>IBAN</dt>
+              <dd class="donation-iban">
+                <span id="donation-iban-value" class="donation-mono">${BANK_DETAILS.iban}</span>
+                <button
+                  type="button"
+                  class="donation-copy-btn"
+                  data-copy-target="#donation-iban-value"
+                  data-copied-label="${isLv ? 'Nokopēts' : 'Copied'}"
+                  aria-label="${isLv ? 'Kopēt IBAN' : 'Copy IBAN'}"
+                >
+                  ${isLv ? 'Kopēt' : 'Copy'}
+                </button>
+              </dd>
             </div>
-            <div>
-              <dt>${isLv ? 'Mērķis:' : 'Purpose:'}</dt>
-              <dd>${isLv ? 'Jauniešu debašu programmu atbalsts' : 'Support youth debate programs'}</dd>
+            <div class="donation-bank-row">
+              <dt>${isLv ? 'Banka' : 'Bank'}</dt>
+              <dd>${isLv ? BANK_DETAILS.bankLv : BANK_DETAILS.bankEn}</dd>
+            </div>
+            <div class="donation-bank-row">
+              <dt>BIC / SWIFT</dt>
+              <dd class="donation-mono">${BANK_DETAILS.bic}</dd>
+            </div>
+            <div class="donation-bank-row">
+              <dt>${isLv ? 'Maksājuma mērķis' : 'Payment reference'}</dt>
+              <dd>${isLv ? 'Ziedojums / Atbalsts jauniešu debatēm' : 'Donation / Support youth debate'}</dd>
             </div>
           </dl>
-          <a class="donation-mail" href="mailto:info@logusdebate.lv">info@logusdebate.lv</a>
+
+          <p class="donation-bank-foot">
+            ${isLv
+              ? 'Pēc pārskaitījuma, ja vēlaties, nosūtiet apliecinājumu uz'
+              : 'After transferring, you may send confirmation to'}
+            <a class="donation-mail" href="mailto:info@logusdebate.lv">info@logusdebate.lv</a>
+          </p>
         </article>
       </div>
+
+      <section class="donation-impact" aria-labelledby="donation-impact-heading">
+        <h2 id="donation-impact-heading" class="visually-hidden">
+          ${isLv ? 'Ietekmes rādītāji' : 'Impact at a glance'}
+        </h2>
+        <ul class="donation-impact-grid">
+          <li class="donation-impact-item">
+            <span class="donation-impact-value">1,247</span>
+            <span class="donation-impact-label">${isLv ? 'ATBALSTĪTĀJI' : 'SUPPORTERS'}</span>
+          </li>
+          <li class="donation-impact-item">
+            <span class="donation-impact-value">342</span>
+            <span class="donation-impact-label">${isLv ? 'FINANSĒTĀS DEBATES' : 'DEBATES FUNDED'}</span>
+          </li>
+          <li class="donation-impact-item">
+            <span class="donation-impact-value">89</span>
+            <span class="donation-impact-label">${isLv ? 'PASĀKUMI' : 'EVENTS HOSTED'}</span>
+          </li>
+          <li class="donation-impact-item">
+            <span class="donation-impact-value">16</span>
+            <span class="donation-impact-label">${isLv ? 'SKOLAS' : 'SCHOOLS REACHED'}</span>
+          </li>
+        </ul>
+      </section>
     </section>
   `
 }

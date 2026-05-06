@@ -1,17 +1,40 @@
 import './style.scss'
 import './events.scss'
+import './donation.scss'
+import './team.scss'
 import { animate, inView } from 'motion'
-import { renderEventsPage, setupEventsAnimations } from './events-page'
+import { renderEventsPage, setupEventsAnimations, categoryLabels } from './events-page'
+import { eventsData, type EventItem } from './events-data'
 import { renderEventDetail, setupEventDetailAnimations } from './event-detail'
 import { renderAboutPage } from './about-page'
-import { renderDonationPage } from './donation-page'
+import { renderDonationPage, setupDonationCopy } from './donation-page'
+import { renderTeamPage, setupTeamAnimations } from './team-page'
 import { renderSecondaryPage } from './secondary-pages'
 
 const translations = {
   en: {
+    home: 'Home',
+    events: 'Events',
+    partners: 'Partners',
+    contact: 'Contact',
     team: 'Team',
     about: 'About Us',
     donation: 'Donation',
+    navMore: 'More',
+    searchToggle: 'Search',
+    searchPlaceholder: 'Search events…',
+    statusOpen: 'OPEN',
+    statusLive: 'LIVE',
+    statusConcluded: 'CONCLUDED',
+    eventsHomeTitle: 'Upcoming events',
+    heroLine1: 'LATVIA\'S HOME FOR',
+    heroHighlight: 'PROFESSIONAL',
+    heroLine2: 'DEBATE',
+    phoneWidgetLabel: 'Call us',
+    clubPoint1: 'British Parliamentary and open formats — training for tournaments and life.',
+    clubPoint2: 'Youth and students from Riga and beyond — inclusive community.',
+    clubPoint3: 'Critical thinking, argumentation, and confident public speaking.',
+    clubCta: 'Read more',
 
     meetUs: 'Meet Us',
     eventsList: 'Events',
@@ -49,9 +72,28 @@ const translations = {
     subtitle: 'Latvia\'s Most Modern Debate Club',
   },
   lv: {
+    home: 'Sākums',
+    events: 'Pasākumi',
+    partners: 'Partneri',
+    contact: 'Kontakti',
     about: 'Par Mums',
     team: 'Komanda',
     donation: 'Ziedojumi',
+    navMore: 'Vairāk',
+    searchToggle: 'Meklēt',
+    searchPlaceholder: 'Meklēt pasākumus…',
+    statusOpen: 'ATVĒRTS',
+    statusLive: 'TIEŠRAIDĒ',
+    statusConcluded: 'NOSLĒGTS',
+    eventsHomeTitle: 'Gaidāmie pasākumi',
+    heroLine1: 'VIETA LATVIJĀ',
+    heroHighlight: 'PROFESIONĀLĀM',
+    heroLine2: 'DEBATĒM',
+    phoneWidgetLabel: 'Zvaniet',
+    clubPoint1: 'British Parliamentary un citi formāti — sagatavošana sacensībām un dzīvei.',
+    clubPoint2: 'Jaunieši un studenti no Rīgas un citur — atvērta kopiena.',
+    clubPoint3: 'Kritiskā domāšana, argumentācija un pārliecinoša publiskā runa.',
+    clubCta: 'Lasīt vairāk',
 
     meetUs: 'Iepazīstieties ar mums',
     eventsList: 'Pasākumi',
@@ -111,6 +153,160 @@ const renderDrawerSecondaryLinks = (lang: string) => {
   `
 }
 
+const renderDropdownSecondaryLinks = (lang: string) => {
+  const isLv = lang === 'lv'
+
+  return /* html */ `
+    <ul class="nav-more-list">
+      <li><a class="nav-dropdown-link" href="#home">${isLv ? 'Sākums' : 'Home'}</a></li>
+      <li><a class="nav-dropdown-link" href="#events">${isLv ? 'Pasākumi' : 'Events'}</a></li>
+      <li><a class="nav-dropdown-link" href="#page/news">${isLv ? 'Jaunumi' : 'News'}</a></li>
+      <li><a class="nav-dropdown-link" href="#page/blog">${isLv ? 'Blogs' : 'Blog'}</a></li>
+      <li><a class="nav-dropdown-link" href="#page/faq">${isLv ? 'BUJ' : 'FAQ'}</a></li>
+      <li><a class="nav-dropdown-link" href="#page/rules">${isLv ? 'Noteikumi' : 'Rules'}</a></li>
+      <li><a class="nav-dropdown-link" href="#page/coaches">${isLv ? 'Treneri' : 'Coaches'}</a></li>
+      <li><a class="nav-dropdown-link" href="#page/testimonials">${isLv ? 'Atsauksmes' : 'Testimonials'}</a></li>
+      <li><a class="nav-dropdown-link" href="#page/media">${isLv ? 'Mediji' : 'Media'}</a></li>
+      <li><a class="nav-dropdown-link" href="#page/careers">${isLv ? 'Karjera' : 'Careers'}</a></li>
+      <li><a class="nav-dropdown-link" href="#page/partners">${isLv ? 'Partneri' : 'Partners'}</a></li>
+      <li><a class="nav-dropdown-link" href="#page/contacts">${isLv ? 'Kontakti' : 'Contacts'}</a></li>
+    </ul>
+  `
+}
+
+type NavActive = 'about' | 'team' | 'donation'
+
+function navActiveClass(active: NavActive | undefined, key: NavActive) {
+  return active === key ? ' class="active-link"' : ''
+}
+
+function renderSiteHeader(active?: NavActive) {
+  return /* html */ `
+  <header>
+    <nav>
+      <div class="nav-left">
+        <div class="logo">
+          <a href="#home" style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;color:inherit;">
+            <img src="/logo.png" alt="LOGUS Debate Logo">
+            <!-- <span>LOGUS</span> -->
+          </a>
+        </div>
+        <div class="nav-more-wrap" id="navMoreWrap">
+          <button type="button" class="nav-more-btn" id="navMoreBtn" aria-expanded="false" aria-haspopup="true">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="nav-more-panel" id="navMorePanel" role="menu">
+            ${renderDropdownSecondaryLinks(currentLanguage)}
+          </div>
+        </div>
+      </div>
+      <div class="nav-cluster">
+        <ul class="nav-links" id="navLinks">
+          <li class="nav-drawer-only"><a href="#home">${t('home')}</a></li>
+          <li class="nav-drawer-only"><a href="#events">${t('events')}</a></li>
+          <li><a href="#about"${navActiveClass(active, 'about')}>${t('about')}</a></li>
+          <li><a href="#team"${navActiveClass(active, 'team')}>${t('team')}</a></li>
+          <li><a href="#donation"${navActiveClass(active, 'donation')}>${t('donation')}</a></li>
+          <li class="drawer-divider"></li>
+          <li class="drawer-title">${currentLanguage === 'lv' ? 'Papildus' : 'More'}</li>
+          ${renderDrawerSecondaryLinks(currentLanguage)}
+        </ul>
+        <div class="nav-search-wrap">
+          <button type="button" class="nav-search-toggle" id="navSearchToggle" aria-expanded="false" aria-label="${t('searchToggle')}">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          </button>
+          <form class="nav-search-form" id="navSearchForm" role="search">
+            <label class="visually-hidden" for="navSearchInput">${t('searchToggle')}</label>
+            <input type="search" id="navSearchInput" class="nav-search-input" placeholder="${t('searchPlaceholder')}" autocomplete="off">
+          </form>
+        </div>
+      </div>
+      <div class="nav-right">
+        <div class="language-switcher" id="languageSwitcher">
+          <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">ENG</button>
+          <button class="lang-btn ${currentLanguage === 'lv' ? 'active' : ''}" data-lang="lv">LAT</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+  `
+}
+
+function getEventStatus(ev: EventItem): 'open' | 'live' | 'concluded' {
+  const d = new Date(ev.date + 'T12:00:00')
+  const today = new Date()
+  d.setHours(0, 0, 0, 0)
+  today.setHours(0, 0, 0, 0)
+  if (d < today) return 'concluded'
+  if (d.getTime() === today.getTime()) return 'live'
+  return 'open'
+}
+
+function renderHomeEventsSection(): string {
+  const isLv = currentLanguage === 'lv'
+  const sorted = [...eventsData].sort((a, b) => a.date.localeCompare(b.date))
+
+  const rows = sorted.map((ev) => {
+    const title = isLv ? ev.title.lv : ev.title.en
+    const desc = isLv ? ev.description.lv : ev.description.en
+    const cat = categoryLabels[ev.category]
+      ? (isLv ? categoryLabels[ev.category].lv : categoryLabels[ev.category].en)
+      : ev.category
+    const status = getEventStatus(ev)
+    const statusKey = status === 'open' ? 'statusOpen' : status === 'live' ? 'statusLive' : 'statusConcluded'
+    const statusLabel = t(statusKey)
+    const dateFmt = ev.date.replace(/-/g, '.')
+    const statusClass = `event-status event-status--${status}`
+
+    return /* html */ `
+      <a class="event-list-row" href="#event/${ev.id}">
+        <div class="event-list-meta">
+          <time class="event-list-date" datetime="${ev.date}">${dateFmt}</time>
+          <span class="${statusClass}">
+            ${status === 'live' ? '<span class="event-status-dot" aria-hidden="true"></span>' : ''}
+            <span class="event-status-text">${statusLabel}</span>
+          </span>
+        </div>
+        <div class="event-list-body">
+          <span class="event-list-cat">${cat}</span>
+          <span class="event-list-title">${title}</span>
+          <span class="event-list-desc">${desc}</span>
+        </div>
+        <span class="event-list-arrow" aria-hidden="true">→</span>
+      </a>
+    `
+  }).join('')
+
+  return /* html */ `
+    <section class="home-events" id="upcoming-events" aria-labelledby="home-events-heading">
+      <div class="home-events-inner">
+        <h2 id="home-events-heading" class="home-events-title">${t('eventsHomeTitle')}</h2>
+        <div class="event-list" role="list">
+          ${rows}
+        </div>
+      </div>
+    </section>
+  `
+}
+
+function renderClubIntroSection(): string {
+  return /* html */ `
+    <section class="club-split" id="club-intro" aria-labelledby="club-intro-heading">
+      <div class="club-split-visual" role="img" aria-label=""></div>
+      <div class="club-split-content">
+        <h2 id="club-intro-heading" class="club-split-heading">${t('whatIs')}</h2>
+        <p class="club-split-lead">${t('whatIsDesc')}</p>
+        <ul class="club-split-list">
+          <li>${t('clubPoint1')}</li>
+          <li>${t('clubPoint2')}</li>
+          <li>${t('clubPoint3')}</li>
+        </ul>
+        <a href="#about" class="btn btn-club-outline">${t('clubCta')}</a>
+      </div>
+    </section>
+  `
+}
+
 const renderSharedFooter = () => /* html */ `
   <footer id="contact">
     <div class="footer-content">
@@ -157,67 +353,29 @@ const app = document.querySelector<HTMLDivElement>('#app')!
 
 function renderPage() {
   app.innerHTML = /* html */ `
-  <header>
-    <nav>
-      <div class="nav-left">
-        <div class="logo">
-          <a href="#home" style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;color:inherit;">
-            <img src="/logo.jpg" alt="LOGUS Debate Logo">
-            <span>LOGUS</span>
-          </a>
-        </div>
-        <div class="hamburger" id="hamburger">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-      </div>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="#about">${t('about')}</a></li>
-        <li><a href="#team">${t('team')}</a></li>
-        <li><a href="#donation">${t('donation')}</a></li>
-        <li class="drawer-divider"></li>
-        <li class="drawer-title">${currentLanguage === 'lv' ? 'Papildus' : 'More'}</li>
-        ${renderDrawerSecondaryLinks(currentLanguage)}
-      </ul>
-      <div class="nav-right">
-        <div class="language-switcher" id="languageSwitcher">
-          <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">ENG</button>
-          <button class="lang-btn ${currentLanguage === 'lv' ? 'active' : ''}" data-lang="lv">LAT</button>
-        </div>
-        <!-- <button class="theme-toggle" id="themeToggle">${isDarkMode ? '☀️' : '🌙'}</button> -->
-      </div>
-    </nav>
-  </header>
+  ${renderSiteHeader()}
 
-  <main>
-    <section class="hero" id="home">
-      <div class="hero-comparison-slider" id="heroSlider">
-        <div class="hero-comparison-before">
-          <div class="hero-content">
-            <img src="/logo.jpg" alt="LOGUS Debate" class="hero-logo">
-            <h1>LOGUS Debate</h1>
-            <p>${t('subtitle')}</p>
-            <div style="margin-top: 2rem;">
-              <a href="#about" class="btn">${t('meetUs')}</a>
-              <a href="#events" class="btn btn-outline">${t('events')}</a>
-            </div>
+  <main class="main-landing">
+    <section class="hero hero--immersive" id="home">
+      <div class="hero-bg" style="background-image: url('/bg-image.jpg');" role="img" aria-label=""></div>
+      <div class="hero-overlay" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <div class="hero-content hero-content--left">
+          <h1 class="hero-headline">
+            <span class="hero-headline-line">${t('heroLine1')}</span>
+            <span class="hero-headline-line"><span class="hero-highlight">${t('heroHighlight')}</span> ${t('heroLine2')}</span>
+          </h1>
+          <div class="hero-actions">
+            <a href="#club-intro" class="btn btn-hero-primary">${t('meetUs')}</a>
+            <a href="#upcoming-events" class="btn btn-hero-ghost">${t('events')}</a>
           </div>
         </div>
-        <div class="hero-comparison-after dark-mode">
-          <div class="hero-content">
-            <img src="/logo.jpg" alt="LOGUS Debate" class="hero-logo">
-            <h1>LOGUS Debate</h1>
-            <p>${t('subtitle')}</p>
-            <div style="margin-top: 2rem;">
-              <a href="#about" class="btn">${t('meetUs')}</a>
-              <a href="#events" class="btn btn-outline">${t('events')}</a>
-            </div>
-          </div>
-        </div>
-        <div class="hero-comparison-handle" id="heroHandle"></div>
       </div>
     </section>
+
+    ${renderHomeEventsSection()}
+
+    ${renderClubIntroSection()}
 
     <section class="sponsors" id="sponsors">
       <!-- <h2>${t('sponsors')}</h2> -->
@@ -252,40 +410,11 @@ function renderPage() {
   setupEventListeners()
   initSwiper()
   setupScrollAnimation()
-  setupHeroComparisonSlider()
 }
 
 function renderAboutView() {
   app.innerHTML = /* html */ `
-  <header>
-    <nav>
-      <div class="nav-left">
-        <div class="logo">
-          <a href="#home" style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;color:inherit;">
-            <img src="/logo.jpg" alt="LOGUS Debate Logo">
-            <span>LOGUS</span>
-          </a>
-        </div>
-        <div class="hamburger" id="hamburger">
-          <span></span><span></span><span></span>
-        </div>
-      </div>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="#about" class="active-link">${t('about')}</a></li>
-        <li><a href="#team">${t('team')}</a></li>
-        <li><a href="#donation">${t('donation')}</a></li>
-        <li class="drawer-divider"></li>
-        <li class="drawer-title">${currentLanguage === 'lv' ? 'Papildus' : 'More'}</li>
-        ${renderDrawerSecondaryLinks(currentLanguage)}
-      </ul>
-      <div class="nav-right">
-        <div class="language-switcher" id="languageSwitcher">
-          <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">ENG</button>
-          <button class="lang-btn ${currentLanguage === 'lv' ? 'active' : ''}" data-lang="lv">LAT</button>
-        </div>
-      </div>
-    </nav>
-  </header>
+  ${renderSiteHeader('about')}
   <main class="page-main">
     ${renderAboutPage(currentLanguage)}
   </main>
@@ -295,38 +424,24 @@ function renderAboutView() {
   setupScrollAnimation()
 }
 
+function renderTeamView() {
+  app.innerHTML = /* html */ `
+  ${renderSiteHeader('team')}
+  <main class="page-main">
+    ${renderTeamPage(currentLanguage)}
+  </main>
+  ${renderSharedFooter()}
+  `
+
+  setupEventListeners()
+  setupScrollAnimation()
+  setupTeamAnimations()
+}
+
 // ── Events page (standalone) ──
 function renderEventsView() {
   app.innerHTML = /* html */ `
-  <header>
-    <nav>
-      <div class="nav-left">
-        <div class="logo">
-          <a href="#home" style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;color:inherit;">
-            <img src="/logo.jpg" alt="LOGUS Debate Logo">
-            <span>LOGUS</span>
-          </a>
-        </div>
-        <div class="hamburger" id="hamburger">
-          <span></span><span></span><span></span>
-        </div>
-      </div>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="#about">${t('about')}</a></li>
-        <li><a href="#team" class="active-link">${t('team')}</a></li>
-        <li><a href="#donation">${t('donation')}</a></li>
-        <li class="drawer-divider"></li>
-        <li class="drawer-title">${currentLanguage === 'lv' ? 'Papildus' : 'More'}</li>
-        ${renderDrawerSecondaryLinks(currentLanguage)}
-      </ul>
-      <div class="nav-right">
-        <div class="language-switcher" id="languageSwitcher">
-          <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">ENG</button>
-          <button class="lang-btn ${currentLanguage === 'lv' ? 'active' : ''}" data-lang="lv">LAT</button>
-        </div>
-      </div>
-    </nav>
-  </header>
+  ${renderSiteHeader()}
   <main class="page-main">
     ${renderEventsPage(currentLanguage)}
   </main>
@@ -338,35 +453,7 @@ function renderEventsView() {
 
 function renderDonationView() {
   app.innerHTML = /* html */ `
-  <header>
-    <nav>
-      <div class="nav-left">
-        <div class="logo">
-          <a href="#home" style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;color:inherit;">
-            <img src="/logo.jpg" alt="LOGUS Debate Logo">
-            <span>LOGUS</span>
-          </a>
-        </div>
-        <div class="hamburger" id="hamburger">
-          <span></span><span></span><span></span>
-        </div>
-      </div>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="#about">${t('about')}</a></li>
-        <li><a href="#team" class="active-link">${t('team')}</a></li>
-        <li><a href="#donation">${t('donation')}</a></li>
-        <li class="drawer-divider"></li>
-        <li class="drawer-title">${currentLanguage === 'lv' ? 'Papildus' : 'More'}</li>
-        ${renderDrawerSecondaryLinks(currentLanguage)}
-      </ul>
-      <div class="nav-right">
-        <div class="language-switcher" id="languageSwitcher">
-          <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">ENG</button>
-          <button class="lang-btn ${currentLanguage === 'lv' ? 'active' : ''}" data-lang="lv">LAT</button>
-        </div>
-      </div>
-    </nav>
-  </header>
+  ${renderSiteHeader('donation')}
   <main class="page-main">
     ${renderDonationPage(currentLanguage)}
   </main>
@@ -375,43 +462,15 @@ function renderDonationView() {
 
   setupEventListeners()
   setupScrollAnimation()
+  setupDonationCopy()
 }
 
-// ── Event detail page ──
 function renderEventView(eventId: string) {
   const detail = renderEventDetail(eventId, currentLanguage)
   if (!detail) { navigateTo('events'); return }
 
   app.innerHTML = /* html */ `
-  <header>
-    <nav>
-      <div class="nav-left">
-        <div class="logo">
-          <a href="#home" style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;color:inherit;">
-            <img src="/logo.jpg" alt="LOGUS Debate Logo">
-            <span>LOGUS</span>
-          </a>
-        </div>
-        <div class="hamburger" id="hamburger">
-          <span></span><span></span><span></span>
-        </div>
-      </div>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="#about">${t('about')}</a></li>
-        <li><a href="#team">${t('team')}</a></li>
-        <li><a href="#donation">${t('donation')}</a></li>
-        <li class="drawer-divider"></li>
-        <li class="drawer-title">${currentLanguage === 'lv' ? 'Papildus' : 'More'}</li>
-        ${renderDrawerSecondaryLinks(currentLanguage)}
-      </ul>
-      <div class="nav-right">
-        <div class="language-switcher" id="languageSwitcher">
-          <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">ENG</button>
-          <button class="lang-btn ${currentLanguage === 'lv' ? 'active' : ''}" data-lang="lv">LAT</button>
-        </div>
-      </div>
-    </nav>
-  </header>
+  ${renderSiteHeader()}
   <main class="page-main">
     ${detail}
   </main>
@@ -426,35 +485,7 @@ function renderSecondaryView(slug: string) {
   if (!detail) { navigateTo('home'); return }
 
   app.innerHTML = /* html */ `
-  <header>
-    <nav>
-      <div class="nav-left">
-        <div class="logo">
-          <a href="#home" style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;color:inherit;">
-            <img src="/logo.jpg" alt="LOGUS Debate Logo">
-            <span>LOGUS</span>
-          </a>
-        </div>
-        <div class="hamburger" id="hamburger">
-          <span></span><span></span><span></span>
-        </div>
-      </div>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="#about">${t('about')}</a></li>
-        <li><a href="#team">${t('team')}</a></li>
-        <li><a href="#donation">${t('donation')}</a></li>
-        <li class="drawer-divider"></li>
-        <li class="drawer-title">${currentLanguage === 'lv' ? 'Papildus' : 'More'}</li>
-        ${renderDrawerSecondaryLinks(currentLanguage)}
-      </ul>
-      <div class="nav-right">
-        <div class="language-switcher" id="languageSwitcher">
-          <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">ENG</button>
-          <button class="lang-btn ${currentLanguage === 'lv' ? 'active' : ''}" data-lang="lv">LAT</button>
-        </div>
-      </div>
-    </nav>
-  </header>
+  ${renderSiteHeader()}
   <main class="page-main">
     ${detail}
   </main>
@@ -465,7 +496,6 @@ function renderSecondaryView(slug: string) {
   setupScrollAnimation()
 }
 
-// ── Simple hash router ──
 function navigateTo(hash: string) {
   window.location.hash = hash
 }
@@ -478,6 +508,8 @@ function handleRoute() {
     renderEventsView()
   } else if (hash === 'about') {
     renderAboutView()
+  } else if (hash === 'team') {
+    renderTeamView()
   } else if (hash === 'donation') {
     renderDonationView()
   } else if (hash.startsWith('page/')) {
@@ -488,7 +520,6 @@ function handleRoute() {
     renderEventView(eventId)
   } else {
     renderPage()
-    // Scroll to section if hash matches a section id
     if (hash !== 'home') {
       setTimeout(() => {
         document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth' })
@@ -560,7 +591,6 @@ function setupHeroComparisonSlider() {
 }
 
 function setupEventListeners() {
-  const hamburger = document.getElementById('hamburger')
   const navLinks = document.getElementById('navLinks')
 
   const existingOverlay = document.querySelector('.nav-drawer-overlay')
@@ -578,19 +608,31 @@ function setupEventListeners() {
     document.body.classList.remove('drawer-open')
   }
 
-  if (hamburger) {
-    hamburger.addEventListener('click', () => {
-      const isOpen = navLinks?.classList.toggle('active')
-      overlay.classList.toggle('active', Boolean(isOpen))
-      document.body.classList.toggle('drawer-open', Boolean(isOpen))
-    })
-  }
 
   overlay.addEventListener('click', closeDrawer)
+
+  const navMoreBtn = document.getElementById('navMoreBtn')
+  const navMoreWrap = document.getElementById('navMoreWrap')
+  const navSearchToggle = document.getElementById('navSearchToggle')
+  const navSearchForm = document.getElementById('navSearchForm')
+  const navSearchInput = document.getElementById('navSearchInput') as HTMLInputElement | null
+
+  const closeNavMore = () => {
+    navMoreWrap?.classList.remove('is-open')
+    navMoreBtn?.setAttribute('aria-expanded', 'false')
+  }
+
+  const closeSearch = () => {
+    navSearchForm?.classList.remove('is-visible')
+    navSearchToggle?.classList.remove('is-open')
+    navSearchToggle?.setAttribute('aria-expanded', 'false')
+  }
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeDrawer()
+      closeNavMore()
+      closeSearch()
     }
   })
 
@@ -613,15 +655,42 @@ function setupEventListeners() {
     })
   })
 
-  const themeToggle = document.getElementById('themeToggle')
-  if (themeToggle) {
-    themeToggle.addEventListener('click', () => {
-      isDarkMode = !isDarkMode
-      localStorage.setItem('theme', isDarkMode ? 'dark' : 'light')
-      document.body.classList.toggle('dark-mode', isDarkMode)
-      themeToggle.textContent = isDarkMode ? '☀️' : '🌙'
-    })
-  }
+
+  navMoreBtn?.addEventListener('click', (e) => {
+    e.stopPropagation()
+    const next = !navMoreWrap?.classList.contains('is-open')
+    navMoreWrap?.classList.toggle('is-open', next)
+    navMoreBtn.setAttribute('aria-expanded', next ? 'true' : 'false')
+  })
+
+  document.addEventListener('click', (e) => {
+    if (navMoreWrap && !navMoreWrap.contains(e.target as Node)) {
+      closeNavMore()
+    }
+  })
+
+  navSearchToggle?.addEventListener('click', (e) => {
+    e.stopPropagation()
+    const open = !navSearchForm?.classList.contains('is-visible')
+    navSearchForm?.classList.toggle('is-visible', open)
+    navSearchToggle.classList.toggle('is-open', open)
+    navSearchToggle.setAttribute('aria-expanded', open ? 'true' : 'false')
+    if (open) {
+      setTimeout(() => navSearchInput?.focus(), 0)
+    }
+  })
+
+  document.addEventListener('click', (e) => {
+    if (navSearchForm && navSearchToggle && !navSearchForm.contains(e.target as Node) && !navSearchToggle.contains(e.target as Node)) {
+      closeSearch()
+    }
+  })
+
+  navSearchForm?.addEventListener('submit', (e) => {
+    e.preventDefault()
+    closeSearch()
+    window.location.hash = 'events'
+  })
 }
 
 function initSwiper() {
@@ -654,13 +723,6 @@ function setupScrollAnimation() {
   const header = document.querySelector('header')
   const heroContent = document.querySelector('.hero-content')
 
-  if (header) {
-    animate(
-      header as any,
-      { opacity: [0, 1], y: [-18, 0] } as any,
-      { duration: 0.35, ease: 'ease-out' } as any,
-    )
-  }
 
   if (heroContent) {
     animate(
@@ -670,14 +732,6 @@ function setupScrollAnimation() {
     )
   }
 
-  inView('section', (element) => {
-    if (element.classList.contains('hero')) return
-    animate(
-      element as any,
-      { opacity: [0, 1], y: [28, 0] } as any,
-      { duration: 0.5, ease: 'ease-out' } as any,
-    )
-  })
 
   inView('.about-grid > div', (element) => {
     animate(
@@ -695,21 +749,23 @@ function setupScrollAnimation() {
     )
   })
 
-  inView('footer', (element) => {
+  inView('.event-list-row', (element) => {
     animate(
       element as any,
-      { opacity: [0, 1], y: [20, 0] } as any,
-      { duration: 0.45, ease: 'ease-out' } as any,
+      { opacity: [0, 1], y: [14, 0] } as any,
+      { duration: 0.4, ease: 'ease-out' } as any,
+    )
+  })
+
+  inView('.club-split', (element) => {
+    animate(
+      element as any,
+      { opacity: [0, 1], y: [22, 0] } as any,
+      { duration: 0.5, ease: 'ease-out' } as any,
     )
   })
 }
 
-if (isDarkMode) {
-  document.body.classList.add('dark-mode')
-} else {
-  document.body.classList.remove('dark-mode')
-  localStorage.setItem('theme', 'light')
-}
 
-// Initial route
+
 handleRoute()

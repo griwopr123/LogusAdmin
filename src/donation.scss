@@ -1,0 +1,299 @@
+$donation-red: hsl(355, 78%, 56%);
+$donation-bg: #0a0a0a;
+$donation-surface: #141414;
+$donation-border: #2a2a2a;
+$donation-muted: #888888;
+$donation-text: #ffffff;
+
+/* ── Donation page — dark layout: hero + bank + impact stats ───────── */
+
+.donation-page--dark {
+  --donation-fg: #{$donation-text};
+  --donation-muted: #{$donation-muted};
+  --donation-surface: #{$donation-surface};
+  --donation-border: #{$donation-border};
+
+  background: $donation-bg;
+  color: $donation-text;
+  padding: 0;
+  padding-bottom: 2rem;
+  width: 100%;
+  min-height: calc(100vh - 80px);
+  box-sizing: border-box;
+}
+
+.donation-page--dark .donation-hero {
+  position: relative;
+  min-height: min(48vh, 420px);
+  display: flex;
+  z-index: 1;
+  align-items: flex-end;
+  justify-content: center;
+  text-align: center;
+  margin: 0;
+  border: none;
+}
+
+.donation-hero-media {
+  position: absolute;
+  inset: 0;
+  background: #050505 url('/bg-image.jpg') center / cover no-repeat;
+}
+
+.donation-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.45) 0%,
+    rgba(0, 0, 0, 0.65) 50%,
+    rgba(10, 10, 10, 0.92) 100%
+  );
+  pointer-events: none;
+}
+
+.donation-hero-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: calc(80px + 2.75rem) 1.5rem 2.75rem;
+}
+
+.donation-page--dark .donation-kicker {
+  margin: 0 0 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.donation-page--dark .donation-heading {
+  margin: 0 0 1rem;
+  font-size: clamp(1.75rem, 4.5vw, 2.65rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.12;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.donation-subtitle {
+  margin: 0;
+  font-size: clamp(0.98rem, 2vw, 1.12rem);
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 400;
+  max-width: 34rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.donation-page-body {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.donation-page--dark .donation-note {
+  margin: 0 0 1.75rem;
+  padding: 1rem 1.15rem;
+  border-radius: 8px;
+  border: 1px solid $donation-border;
+  border-left: 4px solid $donation-red;
+  background: $donation-surface;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.donation-page--dark .donation-bank-card {
+  margin-top: 0;
+  padding: 1.75rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid $donation-border;
+  background: $donation-surface;
+}
+
+.donation-page--dark .donation-bank-title {
+  margin: 0 0 1.35rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.donation-bank-rows {
+  margin: 0;
+  padding: 0;
+}
+
+.donation-page--dark .donation-bank-row {
+  display: grid;
+  grid-template-columns: minmax(96px, 130px) 1fr;
+  gap: 0.5rem 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid $donation-border;
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+
+  dt {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $donation-muted;
+  }
+
+  dd {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: #f0f0f0;
+    word-break: break-word;
+  }
+}
+
+.donation-bank-row--iban dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.donation-mono {
+  font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
+}
+
+.donation-page--dark .donation-copy-btn {
+  flex-shrink: 0;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid $donation-border;
+  border-radius: 6px;
+  background: $donation-bg;
+  color: #ffffff;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    border-color: $donation-red;
+    color: $donation-red;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $donation-red;
+    outline-offset: 2px;
+  }
+}
+
+.donation-page--dark .donation-bank-foot {
+  margin: 1.35rem 0 0;
+  padding-top: 1.15rem;
+  border-top: 1px solid $donation-border;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.donation-page--dark .donation-mail {
+  display: inline;
+  margin: 0;
+  font-weight: 700;
+  color: $donation-red;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Impact strip — full width, like reference */
+.donation-impact {
+  margin-top: 3rem;
+  width: 100%;
+  padding: 2.5rem 1.5rem 3rem;
+  background: #111111;
+  border-top: 1px solid $donation-border;
+  box-sizing: border-box;
+}
+
+.donation-impact-grid {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 1100px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2rem 1.5rem;
+  text-align: center;
+}
+
+.donation-impact-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.donation-impact-value {
+  font-size: clamp(1.85rem, 4vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  color: #ffffff;
+}
+
+.donation-impact-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: $donation-muted;
+  max-width: 12rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 768px) {
+  .donation-hero-inner {
+    padding: calc(70px + 2rem) 1.25rem 2.25rem;
+  }
+
+  .donation-page-body {
+    padding: 1.75rem 1.25rem 0;
+  }
+
+  .donation-page--dark .donation-bank-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+    padding: 0.85rem 0;
+  }
+
+  .donation-impact-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.75rem 1rem;
+  }
+
+  .donation-impact {
+    padding: 2rem 1.25rem 2.5rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .donation-impact-grid {
+    grid-template-columns: 1fr;
+  }
+}

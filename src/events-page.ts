@@ -2,7 +2,7 @@ import { eventsData, type EventItem } from './events-data'
 import { animate, inView } from 'motion'
 import eventCardImage from './assets/event/event.jpg'
 
-const categoryLabels: Record<string, { en: string; lv: string }> = {
+export const categoryLabels: Record<string, { en: string; lv: string }> = {
   championship: { en: 'Championship', lv: 'Čempionāts' },
   workshop: { en: 'Workshop', lv: 'Seminārs' },
   online: { en: 'Online', lv: 'Tiešsaistē' },
