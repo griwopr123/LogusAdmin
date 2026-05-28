@@ -1,15 +1,30 @@
-import './style.scss'
-import './events.scss'
-import './donation.scss'
-import './team.scss'
+import './styles/style.scss'
+import './styles/events.scss'
+import './styles/donation.scss'
+import './styles/contacts.scss'
+import './styles/news.scss'
+import './styles/faq.scss'
+import './styles/documents.scss'
+import './styles/projects.scss'
+import './styles/partners.scss'
+import './styles/rules.scss'
+import './styles/team.scss'
 import { animate, inView } from 'motion'
-import { renderEventsPage, setupEventsAnimations, categoryLabels } from './events-page'
-import { eventsData, type EventItem } from './events-data'
-import { renderEventDetail, setupEventDetailAnimations } from './event-detail'
-import { renderAboutPage } from './about-page'
-import { renderDonationPage, setupDonationCopy } from './donation-page'
-import { renderTeamPage, setupTeamAnimations } from './team-page'
-import { renderSecondaryPage } from './secondary-pages'
+import { renderEventsPage, setupEventsAnimations, categoryLabels } from './pages/events-page'
+import { eventsData, type EventItem } from './data/events-data'
+import { renderEventDetail, setupEventDetailAnimations } from './details/event-detail'
+import { renderAboutPage } from './pages/about-page'
+import { renderDonationPage, setupDonationCopy } from './pages/donation-page'
+import { renderTeamPage, setupTeamAnimations } from './pages/team-page'
+import { renderSecondaryPage } from './pages/secondary-pages'
+import { renderNewsDetail, setupNewsDetailAnimations } from './details/news-detail'
+import { setupNewsAnimations } from './pages/news-page'
+import { setupFaqForm, setupFaqAccordion, setupFaqAnimations } from './pages/faq-page'
+import { renderDocumentDetail, setupDocumentDetailAnimations } from './details/document-detail'
+import { renderProjectDetail, setupProjectDetailAnimations, setupProjectCarousel } from './details/project-detail'
+import { setupDocumentsFilter, setupDocumentsAnimations } from './pages/documents-page'
+import { setupProjectsAnimations } from './pages/projects-page'
+import { searchSite, highlightSearchText, invalidateSearchIndex, type SearchResult } from './utils/site-search'
 
 const translations = {
   en: {
@@ -22,7 +37,9 @@ const translations = {
     donation: 'Donation',
     navMore: 'More',
     searchToggle: 'Search',
-    searchPlaceholder: 'Search events…',
+    searchPlaceholder: 'Search pages, events, people…',
+    searchNoResults: 'No results',
+    searchHint: 'Type to search · Enter for first result',
     statusOpen: 'OPEN',
     statusLive: 'LIVE',
     statusConcluded: 'CONCLUDED',
@@ -81,7 +98,9 @@ const translations = {
     donation: 'Ziedojumi',
     navMore: 'Vairāk',
     searchToggle: 'Meklēt',
-    searchPlaceholder: 'Meklēt pasākumus…',
+    searchPlaceholder: 'Meklēt lapas, pasākumus, personas…',
+    searchNoResults: 'Nekas nav atrasts',
+    searchHint: 'Rakstiet, lai meklētu · Enter — pirmais rezultāts',
     statusOpen: 'ATVĒRTS',
     statusLive: 'TIEŠRAIDĒ',
     statusConcluded: 'NOSLĒGTS',
@@ -141,15 +160,11 @@ const renderDrawerSecondaryLinks = (lang: string) => {
 
   return /* html */ `
     <li><a class="drawer-secondary-link" href="#page/news">${isLv ? 'Jaunumi' : 'News'}</a></li>
-    <li><a class="drawer-secondary-link" href="#page/blog">${isLv ? 'Blogs' : 'Blog'}</a></li>
     <li><a class="drawer-secondary-link" href="#page/faq">${isLv ? 'BUJ' : 'FAQ'}</a></li>
     <li><a class="drawer-secondary-link" href="#page/rules">${isLv ? 'Noteikumi' : 'Rules'}</a></li>
-    <li><a class="drawer-secondary-link" href="#page/coaches">${isLv ? 'Treneri' : 'Coaches'}</a></li>
-    <li><a class="drawer-secondary-link" href="#page/testimonials">${isLv ? 'Atsauksmes' : 'Testimonials'}</a></li>
-    <li><a class="drawer-secondary-link" href="#page/media">${isLv ? 'Mediji' : 'Media'}</a></li>
-    <li><a class="drawer-secondary-link" href="#page/careers">${isLv ? 'Karjera' : 'Careers'}</a></li>
     <li><a class="drawer-secondary-link" href="#page/partners">${isLv ? 'Partneri' : 'Partners'}</a></li>
     <li><a class="drawer-secondary-link" href="#page/contacts">${isLv ? 'Kontakti' : 'Contacts'}</a></li>
+    <li><a class="drawer-secondary-link" href="#page/documents">${isLv ? 'Dokumenti' : 'Documents'}</a></li>
   `
 }
 
@@ -161,14 +176,12 @@ const renderDropdownSecondaryLinks = (lang: string) => {
       <li><a class="nav-dropdown-link" href="#home">${isLv ? 'Sākums' : 'Home'}</a></li>
       <li><a class="nav-dropdown-link" href="#events">${isLv ? 'Pasākumi' : 'Events'}</a></li>
       <li><a class="nav-dropdown-link" href="#page/news">${isLv ? 'Jaunumi' : 'News'}</a></li>
-      <li><a class="nav-dropdown-link" href="#page/blog">${isLv ? 'Blogs' : 'Blog'}</a></li>
       <li><a class="nav-dropdown-link" href="#page/faq">${isLv ? 'BUJ' : 'FAQ'}</a></li>
       <li><a class="nav-dropdown-link" href="#page/rules">${isLv ? 'Noteikumi' : 'Rules'}</a></li>
-      <li><a class="nav-dropdown-link" href="#page/coaches">${isLv ? 'Treneri' : 'Coaches'}</a></li>
-      <li><a class="nav-dropdown-link" href="#page/testimonials">${isLv ? 'Atsauksmes' : 'Testimonials'}</a></li>
-      <li><a class="nav-dropdown-link" href="#page/media">${isLv ? 'Mediji' : 'Media'}</a></li>
-      <li><a class="nav-dropdown-link" href="#page/careers">${isLv ? 'Karjera' : 'Careers'}</a></li>
       <li><a class="nav-dropdown-link" href="#page/partners">${isLv ? 'Partneri' : 'Partners'}</a></li>
+      <li><a class="nav-dropdown-link" href="#page/projects">${isLv ? 'Projekta' : 'Project'}</a></li>
+      <li><a class="nav-dropdown-link" href="#page/contacts">${isLv ? 'Arhīva' : 'Arhive'}</a></li>
+      <li><a class="nav-dropdown-link" href="#page/documents">${isLv ? 'Dokumenti' : 'Documents'}</a></li>
       <li><a class="nav-dropdown-link" href="#page/contacts">${isLv ? 'Kontakti' : 'Contacts'}</a></li>
     </ul>
   `
@@ -192,8 +205,12 @@ function renderSiteHeader(active?: NavActive) {
           </a>
         </div>
         <div class="nav-more-wrap" id="navMoreWrap">
-          <button type="button" class="nav-more-btn" id="navMoreBtn" aria-expanded="false" aria-haspopup="true">
-            <i class="fa-solid fa-bars"></i>
+          <button type="button" class="nav-more-btn" id="navMoreBtn" aria-expanded="false" aria-haspopup="true" aria-label="${currentLanguage === 'lv' ? 'Izvēlne' : 'Menu'}">
+            <span class="nav-burger" aria-hidden="true">
+              <span class="nav-burger-line"></span>
+              <span class="nav-burger-line"></span>
+              <span class="nav-burger-line"></span>
+            </span>
           </button>
           <div class="nav-more-panel" id="navMorePanel" role="menu">
             ${renderDropdownSecondaryLinks(currentLanguage)}
@@ -217,7 +234,17 @@ function renderSiteHeader(active?: NavActive) {
           </button>
           <form class="nav-search-form" id="navSearchForm" role="search">
             <label class="visually-hidden" for="navSearchInput">${t('searchToggle')}</label>
-            <input type="search" id="navSearchInput" class="nav-search-input" placeholder="${t('searchPlaceholder')}" autocomplete="off">
+            <input
+              type="search"
+              id="navSearchInput"
+              class="nav-search-input"
+              placeholder="${t('searchPlaceholder')}"
+              autocomplete="off"
+              aria-autocomplete="list"
+              aria-controls="navSearchResults"
+              aria-expanded="false"
+            >
+            <div class="nav-search-results" id="navSearchResults" role="listbox" hidden></div>
           </form>
         </div>
       </div>
@@ -494,6 +521,71 @@ function renderSecondaryView(slug: string) {
 
   setupEventListeners()
   setupScrollAnimation()
+  if (slug === 'news') setupNewsAnimations()
+  if (slug === 'faq') {
+    setupFaqAnimations()
+    setupFaqAccordion()
+    setupFaqForm(currentLanguage)
+  }
+  if (slug === 'documents') {
+    setupDocumentsFilter()
+    setupDocumentsAnimations()
+  }
+  if (slug === 'projects' || slug === 'project') {
+    setupProjectsAnimations()
+  }
+}
+
+function renderDocumentDetailView(docId: string) {
+  const detail = renderDocumentDetail(docId, currentLanguage)
+  if (!detail) { navigateTo('page/documents'); return }
+
+  app.innerHTML = /* html */ `
+  ${renderSiteHeader()}
+  <main class="page-main">
+    ${detail}
+  </main>
+  ${renderSharedFooter()}
+  `
+
+  setupEventListeners()
+  setupDocumentDetailAnimations()
+}
+
+function renderNewsDetailView(newsId: string) {
+  const detail = renderNewsDetail(newsId, currentLanguage)
+  if (!detail) { navigateTo('page/news'); return }
+
+  app.innerHTML = /* html */ `
+  ${renderSiteHeader()}
+  <main class="page-main page-main--flush">
+    ${detail}
+  </main>
+  ${renderSharedFooter()}
+  `
+
+  setupEventListeners()
+  setupNewsDetailAnimations()
+}
+
+function renderProjectDetailView(projectId: string) {
+  const detail = renderProjectDetail(projectId, currentLanguage)
+  if (!detail) {
+    navigateTo('page/projects')
+    return
+  }
+
+  app.innerHTML = /* html */ `
+  ${renderSiteHeader()}
+  <main class="page-main page-main--flush">
+    ${detail}
+  </main>
+  ${renderSharedFooter()}
+  `
+
+  setupEventListeners()
+  setupProjectDetailAnimations()
+  setupProjectCarousel()
 }
 
 function navigateTo(hash: string) {
@@ -515,9 +607,18 @@ function handleRoute() {
   } else if (hash.startsWith('page/')) {
     const pageSlug = hash.split('/')[1]
     renderSecondaryView(pageSlug)
+  } else if (hash.startsWith('news/')) {
+    const newsId = hash.split('/')[1]
+    renderNewsDetailView(newsId)
+  } else if (hash.startsWith('document/')) {
+    const docId = hash.split('/')[1]
+    renderDocumentDetailView(docId)
   } else if (hash.startsWith('event/')) {
     const eventId = hash.split('/')[1]
     renderEventView(eventId)
+  } else if (hash.startsWith('project/')) {
+    const projectId = hash.slice('project/'.length)
+    renderProjectDetailView(projectId)
   } else {
     renderPage()
     if (hash !== 'home') {
@@ -650,6 +751,7 @@ function setupEventListeners() {
       if (newLang) {
         currentLanguage = newLang
         localStorage.setItem('language', newLang)
+        invalidateSearchIndex()
         handleRoute()
       }
     })
@@ -686,10 +788,146 @@ function setupEventListeners() {
     }
   })
 
-  navSearchForm?.addEventListener('submit', (e) => {
-    e.preventDefault()
+  setupNavSearch(navSearchForm, navSearchInput, closeSearch)
+}
+
+function setupNavSearch(
+  form: HTMLElement | null,
+  input: HTMLInputElement | null,
+  closeSearch: () => void,
+) {
+  const resultsEl = document.getElementById('navSearchResults')
+  if (!form || !input || !resultsEl) return
+
+  let activeIndex = -1
+  let currentResults: SearchResult[] = []
+
+  const goTo = (hash: string) => {
     closeSearch()
-    window.location.hash = 'events'
+    input.value = ''
+    hideResults()
+    window.location.hash = hash.replace(/^#/, '')
+  }
+
+  const hideResults = () => {
+    resultsEl.hidden = true
+    resultsEl.innerHTML = ''
+    input.setAttribute('aria-expanded', 'false')
+    activeIndex = -1
+    currentResults = []
+  }
+
+  const renderResults = (results: SearchResult[]) => {
+    currentResults = results
+    activeIndex = -1
+
+    if (results.length === 0) {
+      const q = input.value.trim()
+      if (q.length < 1) {
+        hideResults()
+        return
+      }
+      resultsEl.innerHTML = /* html */ `
+        <p class="nav-search-empty">${t('searchNoResults')}</p>
+      `
+      resultsEl.hidden = false
+      input.setAttribute('aria-expanded', 'true')
+      return
+    }
+
+    const query = input.value.trim()
+    const items = results.map((r, i) => /* html */ `
+      <button
+        type="button"
+        class="nav-search-result"
+        role="option"
+        data-index="${i}"
+        data-hash="${r.hash}"
+        id="navSearchOption-${i}"
+      >
+        <span class="nav-search-result-title">${highlightSearchText(r.title, query)}</span>
+        <span class="nav-search-result-meta">${highlightSearchText(r.subtitle, query)}</span>
+      </button>
+    `).join('')
+
+    resultsEl.innerHTML = items
+    resultsEl.hidden = false
+    input.setAttribute('aria-expanded', 'true')
+
+    resultsEl.querySelectorAll('.nav-search-result').forEach((btn) => {
+      btn.addEventListener('mousedown', (e) => {
+        e.preventDefault()
+        const hash = (btn as HTMLElement).dataset.hash
+        if (hash) goTo(hash)
+      })
+    })
+  }
+
+  const setActiveOption = (index: number) => {
+    const buttons = resultsEl.querySelectorAll('.nav-search-result')
+    buttons.forEach((btn, i) => {
+      btn.classList.toggle('is-active', i === index)
+      if (i === index) {
+        input.setAttribute('aria-activedescendant', btn.id)
+      }
+    })
+    if (index < 0) {
+      input.removeAttribute('aria-activedescendant')
+    }
+    activeIndex = index
+  }
+
+  const runSearch = () => {
+    const q = input.value.trim()
+    if (q.length < 1) {
+      hideResults()
+      return
+    }
+    renderResults(searchSite(q, currentLanguage))
+  }
+
+  const navigateFirst = () => {
+    if (currentResults.length === 0) {
+      runSearch()
+    }
+    if (currentResults.length > 0) {
+      const idx = activeIndex >= 0 ? activeIndex : 0
+      goTo(currentResults[idx].hash)
+    }
+  }
+
+  input.addEventListener('input', runSearch)
+  input.addEventListener('focus', () => {
+    if (input.value.trim().length > 0) runSearch()
+  })
+
+  input.addEventListener('keydown', (e) => {
+    const buttons = resultsEl.querySelectorAll('.nav-search-result')
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      if (buttons.length === 0) runSearch()
+      const next = activeIndex < buttons.length - 1 ? activeIndex + 1 : 0
+      setActiveOption(next)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      if (buttons.length === 0) return
+      const prev = activeIndex > 0 ? activeIndex - 1 : buttons.length - 1
+      setActiveOption(prev)
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (activeIndex >= 0 && currentResults[activeIndex]) {
+        goTo(currentResults[activeIndex].hash)
+      } else {
+        navigateFirst()
+      }
+    } else if (e.key === 'Escape') {
+      hideResults()
+    }
+  })
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault()
+    navigateFirst()
   })
 }
 

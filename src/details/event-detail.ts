@@ -1,6 +1,6 @@
-import { eventsData } from './events-data'
+import { eventsData } from '../data/events-data'
 import { animate } from 'motion'
-import eventCardImage from './assets/event/event.jpg'
+import eventCardImage from '../assets/event/event.jpg'
 
 export function renderEventDetail(eventId: string, lang: string): string | null {
   const ev = eventsData.find(e => e.id === eventId)

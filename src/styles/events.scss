@@ -5,6 +5,10 @@
 .page-main {
   margin-top: 70px;
   min-height: calc(100vh - 80px);
+
+  &--flush {
+    padding: 0;
+  }
 }
 
 /* ── Page header ── */

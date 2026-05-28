@@ -1,6 +1,6 @@
-import { eventsData, type EventItem } from './events-data'
+import { eventsData, type EventItem } from '../data/events-data'
 import { animate, inView } from 'motion'
-import eventCardImage from './assets/event/event.jpg'
+import eventCardImage from '../assets/event/event.jpg'
 
 export const categoryLabels: Record<string, { en: string; lv: string }> = {
   championship: { en: 'Championship', lv: 'Čempionāts' },

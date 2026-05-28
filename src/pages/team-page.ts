@@ -10,7 +10,7 @@ const teamQuote = {
   lv: 'NEĒRTĪBA IR IZAUGSMES PRIEKŠNOSACĪJUMS',
 }
 
-const teamMembers: TeamMember[] = [
+export const teamMembers: TeamMember[] = [
   {
     name: { en: 'Anete Kalniņa', lv: 'Anete Kalniņa' },
     role: { en: 'Programme Director', lv: 'Programmas vadītāja' },

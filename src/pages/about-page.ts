@@ -98,13 +98,6 @@ export function renderAboutPage(lang: string): string {
                   <dd><a href="tel:+37112345678">+371 12345678</a></dd>
                 </div>
               </dl>
-              <p class="about-aside-social-label">${isLv ? 'Seko mums' : 'Follow us'}</p>
-              <nav class="about-aside-social" aria-label="${isLv ? 'Sociālie tīkli' : 'Social media'}">
-                <a href="#">Facebook</a>
-                <a href="#">Instagram</a>
-                <a href="#">X</a>
-                <a href="#">LinkedIn</a>
-              </nav>
             </div>
           </aside>
         </div>
