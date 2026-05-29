@@ -8,6 +8,9 @@ export interface EventItem {
   description: { en: string; lv: string }
   location: { en: string; lv: string }
   category: string    // e.g. "championship", "workshop", "online", "camp"
+  image?: string
+  googleMapsUrl?: string
+  format?: { en: string; lv: string }
 }
 
 export const eventsData: EventItem[] = [

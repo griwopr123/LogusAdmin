@@ -1,11 +1,11 @@
-import { projectsData } from '../data/projects-data'
+import { getProjectItems } from '../services/content-store'
 
 function pick(isLv: boolean, pair: { en: string; lv: string }): string {
   return isLv ? pair.lv : pair.en
 }
 
 export function renderProjectDetail(projectId: string, lang: string): string | null {
-  const project = projectsData.find((p) => p.id === projectId)
+  const project = getProjectItems().find((p) => p.id === projectId)
   if (!project) return null
 
   const isLv = lang === 'lv'

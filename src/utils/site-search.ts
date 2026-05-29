@@ -1,12 +1,14 @@
-import { eventsData } from '../data/events-data'
-import { newsData } from '../data/news-data'
+import {
+  getDocumentItems,
+  getEventsItems,
+  getNewsItems,
+  getPartnerItems,
+  getProjectItems,
+  getTeamMembers,
+} from '../services/content-store'
 import { faqData } from '../data/faq-data'
 import { rulesData } from '../data/rules-data'
-import { documentsData } from '../data/documents-data'
-import { partnersData } from '../data/partners-data'
-import { projectsData } from '../data/projects-data'
 import { secondaryPages } from '../pages/secondary-pages'
-import { teamMembers } from '../pages/team-page'
 import { categoryLabels } from '../pages/events-page'
 
 export type SearchResultKind = 'page' | 'event' | 'person' | 'section' | 'news'
@@ -15,7 +17,7 @@ export interface SearchResult {
   id: string
   title: string
   subtitle: string
-  hash: string
+  route: string
   kind: SearchResultKind
   score: number
 }
@@ -24,7 +26,7 @@ interface SearchIndexEntry {
   id: string
   title: string
   subtitle: string
-  hash: string
+  route: string
   kind: SearchResultKind
   terms: string[]
 }
@@ -80,25 +82,26 @@ function buildIndex(lang: string): SearchIndexEntry[] {
   const isLv = lang === 'lv'
   const entries: SearchIndexEntry[] = []
 
-  const mainPages: { hash: string; title: { en: string; lv: string }; extra?: string[] }[] = [
-    { hash: 'home', title: { en: 'Home', lv: 'Sākums' }, extra: ['landing', 'hero', 'sākumlapa'] },
-    { hash: 'events', title: { en: 'Events', lv: 'Pasākumi' }, extra: ['calendar', 'pasākumu saraksts', 'tournaments'] },
-    { hash: 'about', title: { en: 'About Us', lv: 'Par Mums' }, extra: ['about us', 'par mums', 'mission', 'misija'] },
-    { hash: 'team', title: { en: 'Team', lv: 'Komanda' }, extra: ['staff', 'komanda', 'people'] },
-    { hash: 'donation', title: { en: 'Donation', lv: 'Ziedojumi' }, extra: ['donate', 'support', 'ziedot'] },
-    { hash: 'sponsors', title: { en: 'Partners', lv: 'Partneri' }, extra: ['sponsors', 'partneri'] },
-    { hash: 'club-intro', title: { en: 'What is LOGUS Debate?', lv: 'Kas ir LOGUS Debate?' }, extra: ['club', 'about club'] },
-    { hash: 'upcoming-events', title: { en: 'Upcoming events', lv: 'Gaidāmie pasākumi' }, extra: ['home events'] },
-    { hash: 'contact', title: { en: 'Contact', lv: 'Kontakti' }, extra: ['footer', 'email', 'phone', 'info@logusdebate.lv'] },
+  const mainPages: { route: string; title: { en: string; lv: string }; extra?: string[] }[] = [
+    { route: 'home', title: { en: 'Home', lv: 'Sākums' }, extra: ['landing', 'hero', 'sākumlapa'] },
+    { route: 'events', title: { en: 'Events', lv: 'Pasākumi' }, extra: ['calendar', 'pasākumu saraksts', 'tournaments'] },
+    { route: 'about', title: { en: 'About Us', lv: 'Par Mums' }, extra: ['about us', 'par mums', 'mission', 'misija'] },
+    { route: 'team', title: { en: 'Team', lv: 'Komanda' }, extra: ['staff', 'komanda', 'people'] },
+    { route: 'donation', title: { en: 'Donation', lv: 'Ziedojumi' }, extra: ['donate', 'support', 'ziedot'] },
+    { route: 'page/arhive', title: { en: 'Archive', lv: 'Arhīvs' }, extra: ['history', 'vēsture', 'yearbooks', 'gadagrāmatas', 'photos', 'fotogrāfijas'] },
+    { route: 'sponsors', title: { en: 'Partners', lv: 'Partneri' }, extra: ['sponsors', 'partneri'] },
+    { route: 'club-intro', title: { en: 'What is LOGUS Debate?', lv: 'Kas ir LOGUS Debate?' }, extra: ['club', 'about club'] },
+    { route: 'upcoming-events', title: { en: 'Upcoming events', lv: 'Gaidāmie pasākumi' }, extra: ['home events'] },
+    { route: 'contact', title: { en: 'Contact', lv: 'Kontakti' }, extra: ['footer', 'email', 'phone', 'info@logusdebate.lv'] },
   ]
 
   for (const page of mainPages) {
     const title = isLv ? page.title.lv : page.title.en
     entries.push({
-      id: `page-${page.hash}`,
+      id: `page-${page.route}`,
       title,
       subtitle: isLv ? 'Lapa' : 'Page',
-      hash: page.hash === 'home' ? '#home' : `#${page.hash}`,
+      route: page.route,
       kind: 'page',
       terms: [title, ...(page.extra ?? [])],
     })
@@ -111,13 +114,13 @@ function buildIndex(lang: string): SearchIndexEntry[] {
       id: `secondary-${page.slug}`,
       title,
       subtitle: isLv ? 'Lapa' : 'Page',
-      hash: `#page/${page.slug}`,
+      route: `page/${page.slug}`,
       kind: 'page',
       terms: [title, body, page.slug],
     })
   }
 
-  for (const partner of partnersData) {
+  for (const partner of getPartnerItems()) {
     const category = isLv ? partner.category.lv : partner.category.en
     const name = isLv ? partner.name.lv : partner.name.en
     const description = isLv ? partner.description.lv : partner.description.en
@@ -125,13 +128,13 @@ function buildIndex(lang: string): SearchIndexEntry[] {
       id: `partner-${partner.id}`,
       title: name,
       subtitle: `${isLv ? 'Partneris' : 'Partner'} · ${category}`,
-      hash: '#page/partners',
+      route: 'page/partners',
       kind: 'page',
       terms: [name, category, description, partner.id, 'partners', 'partneri'],
     })
   }
 
-  for (const ev of eventsData) {
+  for (const ev of getEventsItems()) {
     const title = isLv ? ev.title.lv : ev.title.en
     const desc = isLv ? ev.description.lv : ev.description.en
     const loc = isLv ? ev.location.lv : ev.location.en
@@ -143,7 +146,7 @@ function buildIndex(lang: string): SearchIndexEntry[] {
       id: `event-${ev.id}`,
       title,
       subtitle: `${isLv ? 'Pasākums' : 'Event'} · ${formatEventDate(ev.date, isLv)}`,
-      hash: `#event/${ev.id}`,
+      route: `event/${ev.id}`,
       kind: 'event',
       terms: [
         title,
@@ -164,7 +167,7 @@ function buildIndex(lang: string): SearchIndexEntry[] {
       id: `faq-${item.id}`,
       title: q,
       subtitle: isLv ? 'BUJ' : 'FAQ',
-      hash: '#page/faq',
+      route: 'page/faq',
       kind: 'page',
       terms: [q, a, 'faq', 'buj', item.id],
     })
@@ -177,7 +180,7 @@ function buildIndex(lang: string): SearchIndexEntry[] {
       id: `rules-${num}`,
       title: `${num}. ${main}`,
       subtitle: isLv ? 'Debašu noteikumi' : 'Debate rules',
-      hash: '#page/rules',
+      route: 'page/rules',
       kind: 'page',
       terms: [main, String(num), 'rules', 'noteikumi'],
     })
@@ -187,7 +190,7 @@ function buildIndex(lang: string): SearchIndexEntry[] {
         id: `rules-${num}-${subIndex + 1}`,
         title: `${num}.${subIndex + 1} ${text.slice(0, 64)}${text.length > 64 ? '…' : ''}`,
         subtitle: isLv ? 'Debašu noteikumi' : 'Debate rules',
-        hash: '#page/rules',
+        route: 'page/rules',
         kind: 'page',
         terms: [text, main, `${num}.${subIndex + 1}`, 'rules', 'noteikumi', 'bp', 'poi'],
       })
@@ -198,12 +201,12 @@ function buildIndex(lang: string): SearchIndexEntry[] {
     id: 'page-rules',
     title: isLv ? 'Debašu noteikumi' : 'Debate rules',
     subtitle: isLv ? 'Lapa' : 'Page',
-    hash: '#page/rules',
+    route: 'page/rules',
     kind: 'page',
     terms: ['rules', 'noteikumi', 'debate', 'debašu'],
   })
 
-  for (const doc of documentsData) {
+  for (const doc of getDocumentItems()) {
     const title = isLv ? doc.title.lv : doc.title.en
     const excerpt = isLv ? doc.excerpt.lv : doc.excerpt.en
     const contentText = (isLv ? doc.content.lv : doc.content.en).join(' ')
@@ -211,13 +214,13 @@ function buildIndex(lang: string): SearchIndexEntry[] {
       id: `doc-${doc.id}`,
       title,
       subtitle: isLv ? 'Dokuments' : 'Document',
-      hash: `#document/${doc.id}`,
+      route: `document/${doc.id}`,
       kind: 'page',
       terms: [title, excerpt, contentText, doc.id, 'statūti', 'dokumenti', 'documents', doc.category],
     })
   }
 
-  for (const project of projectsData) {
+  for (const project of getProjectItems()) {
     const title = isLv ? project.title.lv : project.title.en
     const excerpt = isLv ? project.excerpt.lv : project.excerpt.en
     const intro = isLv ? project.heroIntro.lv : project.heroIntro.en
@@ -226,7 +229,7 @@ function buildIndex(lang: string): SearchIndexEntry[] {
       id: `project-${project.id}`,
       title,
       subtitle: isLv ? 'Projekts' : 'Project',
-      hash: `#project/${project.id}`,
+      route: `project/${project.id}`,
       kind: 'page',
       terms: [title, excerpt, intro, bodyText, project.id, 'projekti', 'projects'],
     })
@@ -236,12 +239,12 @@ function buildIndex(lang: string): SearchIndexEntry[] {
     id: 'page-projects',
     title: isLv ? 'Projekti' : 'Projects',
     subtitle: isLv ? 'Lapa' : 'Page',
-    hash: '#page/projects',
+    route: 'page/projects',
     kind: 'page',
     terms: ['projekti', 'projects', 'project', 'programma'],
   })
 
-  for (const post of newsData) {
+  for (const post of getNewsItems()) {
     const title = isLv ? post.title.lv : post.title.en
     const excerpt = isLv ? post.excerpt.lv : post.excerpt.en
     const body = isLv ? post.body.lv : post.body.en
@@ -249,13 +252,13 @@ function buildIndex(lang: string): SearchIndexEntry[] {
       id: `news-${post.id}`,
       title,
       subtitle: `${isLv ? 'Jaunums' : 'News'} · ${formatEventDate(post.date, isLv)}`,
-      hash: `#news/${post.id}`,
+      route: `news/${post.id}`,
       kind: 'news',
       terms: [title, excerpt, body, post.id, 'instagram', 'jaunumi', 'news'],
     })
   }
 
-  for (const member of teamMembers) {
+  for (const member of getTeamMembers()) {
     const name = isLv ? member.name.lv : member.name.en
     const role = isLv ? member.role.lv : member.role.en
     const nameParts = name.split(/\s+/)
@@ -263,7 +266,7 @@ function buildIndex(lang: string): SearchIndexEntry[] {
       id: `person-${normalize(name)}`,
       title: name,
       subtitle: `${isLv ? 'Komanda' : 'Team'} · ${role}`,
-      hash: '#team',
+      route: 'team',
       kind: 'person',
       terms: [name, role, ...nameParts, 'team', 'komanda', 'coach', 'treneris'],
     })
@@ -313,7 +316,7 @@ export function searchSite(query: string, lang: string, limit = 8): SearchResult
         id: entry.id,
         title: entry.title,
         subtitle: entry.subtitle,
-        hash: entry.hash,
+        route: entry.route,
         kind: entry.kind,
         score: best,
       })

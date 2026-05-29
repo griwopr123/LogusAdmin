@@ -1,21 +1,25 @@
-import { eventsData } from '../data/events-data'
+import { getEventsItems } from '../services/content-store'
 import { animate } from 'motion'
 import eventCardImage from '../assets/event/event.jpg'
 
 export function renderEventDetail(eventId: string, lang: string): string | null {
-  const ev = eventsData.find(e => e.id === eventId)
+  const ev = getEventsItems().find(e => e.id === eventId)
   if (!ev) return null
 
   const isLv = lang === 'lv'
   const t = (field: { en: string; lv: string }) => isLv ? field.lv : field.en
-  const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(t(ev.location))}&z=14&output=embed`
+  const heroImage = ev.image ?? eventCardImage
+  const formatLabel = ev.format ? t(ev.format) : (isLv ? 'British Parliamentary' : 'British Parliamentary')
+  const mapSrc = ev.googleMapsUrl
+    ? ev.googleMapsUrl
+    : `https://maps.google.com/maps?q=${encodeURIComponent(t(ev.location))}&z=14&output=embed`
 
   return /* html */ `
     <section class="event-detail" id="event-detail">
-      <a href="#events" class="event-detail-back">← ${isLv ? 'Atpakaļ uz pasākumiem' : 'Back to Events'}</a>
+      <a href="/events" class="event-detail-back">← ${isLv ? 'Atpakaļ uz pasākumiem' : 'Back to Events'}</a>
       <article class="event-detail-card">
         <div class="event-detail-hero">
-          <img class="event-detail-image" src="${eventCardImage}" alt="${t(ev.title)}">
+          <img class="event-detail-image" src="${heroImage}" alt="${t(ev.title)}">
           <div class="event-detail-overlay">
             <div class="event-detail-date-big">
               <span class="ed-day">${ev.day}</span>
@@ -48,7 +52,7 @@ export function renderEventDetail(eventId: string, lang: string): string | null 
             </div>
             <div class="event-detail-info-item">
               <span class="info-label">${isLv ? 'Formāts' : 'Format'}</span>
-              <span>${isLv ? 'British Parliamentary' : 'British Parliamentary'}</span>
+              <span>${formatLabel}</span>
             </div>
             <!-- <a href="#events" class="event-detail-register">${isLv ? 'Reģistrēties' : 'Register Now'}</a> -->
           </aside>

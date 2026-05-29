@@ -162,11 +162,16 @@ $donation-text: #ffffff;
   }
 }
 
-.donation-bank-row--iban dd {
+.donation-copyable {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.65rem;
+}
+
+.donation-copyable-value {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .donation-mono {

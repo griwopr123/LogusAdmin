@@ -5,6 +5,7 @@ import { renderDocumentsPage } from './documents-page'
 import { renderRulesPage } from './rules-page'
 import { renderPartnersPage } from './partners-page'
 import { renderProjectsPage } from './projects-page'
+import { renderArchivePage } from './archive-page'
 
 export interface SecondaryPageItem {
   slug: string
@@ -56,6 +57,10 @@ export function renderSecondaryPage(slug: string, lang: string): string | null {
     return renderProjectsPage(lang)
   }
 
+  if (slug === 'arhive' || slug === 'archive') {
+    return renderArchivePage(lang)
+  }
+
   const page = secondaryPages.find((item) => item.slug === slug)
   if (!page) return null
 
@@ -67,7 +72,7 @@ export function renderSecondaryPage(slug: string, lang: string): string | null {
     <section class="secondary-page" id="secondary-page">
       <h2>${title}</h2>
       <p>${body}</p>
-      <a href="#home" class="btn">${isLv ? 'Uz sākumu' : 'Back to home'}</a>
+      <a href="/" class="btn">${isLv ? 'Uz sākumu' : 'Back to home'}</a>
     </section>
   `
 }

@@ -1,4 +1,4 @@
-import { newsData } from '../data/news-data'
+import { getNewsItems } from '../services/content-store'
 import { inView, animate } from 'motion'
 
 function pick(isLv: boolean, pair: { en: string; lv: string }): string {
@@ -17,7 +17,7 @@ function formatDate(date: string, isLv: boolean): string {
 export function renderNewsPage(lang: string): string {
   const isLv = lang === 'lv'
 
-  const cards = [...newsData]
+  const cards = [...getNewsItems()]
     .sort((a, b) => b.date.localeCompare(a.date))
     .map((item) => {
       const title = pick(isLv, item.title)
@@ -26,7 +26,7 @@ export function renderNewsPage(lang: string): string {
 
       return /* html */ `
         <article class="news-card">
-          <a class="news-card-media" href="#news/${item.id}">
+          <a class="news-card-media" href="/news/${item.id}">
             <img
               class="news-card-image"
               src="${item.image}"
@@ -38,10 +38,10 @@ export function renderNewsPage(lang: string): string {
           <div class="news-card-body">
             <time class="news-card-date" datetime="${item.date}">${dateLabel}</time>
             <h2 class="news-card-title">
-              <a href="#news/${item.id}">${title}</a>
+              <a href="/news/${item.id}">${title}</a>
             </h2>
             <p class="news-card-excerpt">${excerpt}</p>
-            <a href="#news/${item.id}" class="news-card-link">
+            <a href="/news/${item.id}" class="news-card-link">
               ${isLv ? 'Lasīt vairāk' : 'Read more'} →
             </a>
           </div>

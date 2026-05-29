@@ -1,4 +1,4 @@
-import { projectsData } from '../data/projects-data'
+import { getProjectItems } from '../services/content-store'
 import { inView, animate } from 'motion'
 
 function pick(isLv: boolean, pair: { en: string; lv: string }): string {
@@ -8,11 +8,11 @@ function pick(isLv: boolean, pair: { en: string; lv: string }): string {
 export function renderProjectsPage(lang: string): string {
   const isLv = lang === 'lv'
 
-  const cards = projectsData
+  const cards = getProjectItems()
     .map(
       (project) => /* html */ `
       <article class="project-card">
-        <a class="project-card-media" href="#project/${project.id}">
+        <a class="project-card-media" href="/project/${project.id}">
           <img
             class="project-card-image"
             src="${project.image}"
@@ -23,7 +23,7 @@ export function renderProjectsPage(lang: string): string {
         </a>
         <div class="project-card-body">
           <h2 class="project-card-title">
-            <a href="#project/${project.id}">${pick(isLv, project.title)}</a>
+            <a href="/project/${project.id}">${pick(isLv, project.title)}</a>
           </h2>
           <p class="project-card-excerpt">${pick(isLv, project.excerpt)}</p>
         </div>

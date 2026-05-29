@@ -1,33 +1,10 @@
 import { animate, inView } from 'motion'
-
-export interface TeamMember {
-  name: { en: string; lv: string }
-  role: { en: string; lv: string }
-}
+import { getTeamMembers } from '../services/content-store'
 
 const teamQuote = {
   en: 'DISCOMFORT IS THE PRECONDITION OF GROWTH',
   lv: 'NEĒRTĪBA IR IZAUGSMES PRIEKŠNOSACĪJUMS',
 }
-
-export const teamMembers: TeamMember[] = [
-  {
-    name: { en: 'Anete Kalniņa', lv: 'Anete Kalniņa' },
-    role: { en: 'Programme Director', lv: 'Programmas vadītāja' },
-  },
-  {
-    name: { en: 'Mārtiņš Zariņš', lv: 'Mārtiņš Zariņš' },
-    role: { en: 'Head Coach — BP', lv: 'Galvenais treneris — BP' },
-  },
-  {
-    name: { en: 'Elīna Liepiņa', lv: 'Elīna Liepiņa' },
-    role: { en: 'Senior Coach', lv: 'Vecākā trenere' },
-  },
-  {
-    name: { en: 'Roberts Bērziņš', lv: 'Roberts Bērziņš' },
-    role: { en: 'Junior Circuit Lead', lv: 'Jauniešu līgas vadītājs' },
-  }
-]
 
 function pick(isLv: boolean, pair: { en: string; lv: string }): string {
   return isLv ? pair.lv : pair.en
@@ -36,14 +13,15 @@ function pick(isLv: boolean, pair: { en: string; lv: string }): string {
 export function renderTeamPage(lang: string): string {
   const isLv = lang === 'lv'
 
-  const cards = teamMembers
+  const cards = getTeamMembers()
     .map((m) => {
+      const photoSrc = m.photo || '/bg-image.jpg'
       return /* html */ `
     <article class="team-card">
       <div class="team-card-photo">
         <img
           class="team-card-img"
-          src="/bg-image.jpg"
+          src="${photoSrc}"
           alt="${pick(isLv, m.name)}"
           loading="lazy"
           decoding="async"
@@ -64,11 +42,6 @@ export function renderTeamPage(lang: string): string {
 
   return /* html */ `
     <div class="team-page team-page--editorial" id="team">
-      <!-- <header class="team-page-hed">
-         <p class="team-page-hed-kicker">LOGUS Debate</p>
-         <h1 class="team-page-hed-title">${isLv ? 'Komanda' : 'Team'}</h1>
-       </header> -->
-
       <div class="team-grid-editorial" role="list">
         ${cards}
       </div>

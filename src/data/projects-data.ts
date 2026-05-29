@@ -12,7 +12,7 @@ export interface ProjectItem {
   body: { en: string[]; lv: string[] }
 }
 
-export const projectsData: ProjectItem[] = [
+export const staticProjectsData: ProjectItem[] = [
   {
     id: 'youth-festival-marupe',
     image: PROJECT_IMAGE,

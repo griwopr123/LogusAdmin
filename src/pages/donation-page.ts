@@ -7,14 +7,38 @@ const BANK_DETAILS = {
   bic: 'HABALV22',
 }
 
+function copyButton(isLv: boolean, targetId: string, ariaLabel: string, stripSpaces = false): string {
+  return /* html */ `
+    <button
+      type="button"
+      class="donation-copy-btn"
+      data-copy-target="#${targetId}"
+      data-copied-label="${isLv ? 'Nokopēts' : 'Copied'}"
+      data-copy-strip-spaces="${stripSpaces ? 'true' : 'false'}"
+      aria-label="${ariaLabel}"
+    >
+      ${isLv ? 'Kopēt' : 'Copy'}
+    </button>
+  `
+}
+
+function copyableValue(id: string, value: string, extraClass = ''): string {
+  const cls = ['donation-copyable-value', extraClass].filter(Boolean).join(' ')
+  return `<span id="${id}" class="${cls}">${value}</span>`
+}
+
 export function setupDonationCopy(): void {
   document.querySelectorAll<HTMLButtonElement>('.donation-copy-btn').forEach((btn) => {
     const targetSel = btn.getAttribute('data-copy-target')
     if (!targetSel) return
     btn.addEventListener('click', async () => {
       const el = document.querySelector<HTMLElement>(targetSel)
-      const text = el?.textContent?.replace(/\s/g, '') ?? ''
+      if (!el) return
+
+      const raw = el.textContent?.trim() ?? ''
+      const text = btn.dataset.copyStripSpaces === 'true' ? raw.replace(/\s/g, '') : raw
       if (!text) return
+
       const labelCopied = btn.dataset.copiedLabel ?? 'Copied'
       const prevText = btn.textContent ?? ''
       try {
@@ -64,34 +88,41 @@ export function renderDonationPage(lang: string): string {
           <dl class="donation-bank-rows">
             <div class="donation-bank-row">
               <dt>${isLv ? 'Saņēmējs' : 'Recipient'}</dt>
-              <dd>${BANK_DETAILS.recipient}</dd>
+              <dd class="donation-copyable">
+                ${copyableValue('donation-recipient-value', BANK_DETAILS.recipient)}
+                ${copyButton(isLv, 'donation-recipient-value', isLv ? 'Kopēt saņēmēju' : 'Copy recipient')}
+              </dd>
             </div>
             <div class="donation-bank-row donation-bank-row--iban">
               <dt>IBAN</dt>
-              <dd class="donation-iban">
-                <span id="donation-iban-value" class="donation-mono">${BANK_DETAILS.iban}</span>
-                <button
-                  type="button"
-                  class="donation-copy-btn"
-                  data-copy-target="#donation-iban-value"
-                  data-copied-label="${isLv ? 'Nokopēts' : 'Copied'}"
-                  aria-label="${isLv ? 'Kopēt IBAN' : 'Copy IBAN'}"
-                >
-                  ${isLv ? 'Kopēt' : 'Copy'}
-                </button>
+              <dd class="donation-copyable">
+                ${copyableValue('donation-iban-value', BANK_DETAILS.iban, 'donation-mono')}
+                ${copyButton(isLv, 'donation-iban-value', isLv ? 'Kopēt IBAN' : 'Copy IBAN', true)}
               </dd>
             </div>
             <div class="donation-bank-row">
               <dt>${isLv ? 'Banka' : 'Bank'}</dt>
-              <dd>${isLv ? BANK_DETAILS.bankLv : BANK_DETAILS.bankEn}</dd>
+              <dd class="donation-copyable">
+                ${copyableValue('donation-bank-value', isLv ? BANK_DETAILS.bankLv : BANK_DETAILS.bankEn)}
+                ${copyButton(isLv, 'donation-bank-value', isLv ? 'Kopēt banku' : 'Copy bank')}
+              </dd>
             </div>
             <div class="donation-bank-row">
               <dt>BIC / SWIFT</dt>
-              <dd class="donation-mono">${BANK_DETAILS.bic}</dd>
+              <dd class="donation-copyable">
+                ${copyableValue('donation-bic-value', BANK_DETAILS.bic, 'donation-mono')}
+                ${copyButton(isLv, 'donation-bic-value', isLv ? 'Kopēt BIC' : 'Copy BIC')}
+              </dd>
             </div>
             <div class="donation-bank-row">
               <dt>${isLv ? 'Maksājuma mērķis' : 'Payment reference'}</dt>
-              <dd>${isLv ? 'Ziedojums / Atbalsts jauniešu debatēm' : 'Donation / Support youth debate'}</dd>
+              <dd class="donation-copyable">
+                ${copyableValue(
+                  'donation-reference-value',
+                  isLv ? 'Ziedojums / Atbalsts jauniešu debatēm' : 'Donation / Support youth debate',
+                )}
+                ${copyButton(isLv, 'donation-reference-value', isLv ? 'Kopēt mērķi' : 'Copy reference')}
+              </dd>
             </div>
           </dl>
 

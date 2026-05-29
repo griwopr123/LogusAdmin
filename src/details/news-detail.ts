@@ -1,4 +1,4 @@
-import { newsData } from '../data/news-data'
+import { getNewsItems } from '../services/content-store'
 import { animate } from 'motion'
 
 function pick(isLv: boolean, pair: { en: string; lv: string }): string {
@@ -15,7 +15,7 @@ function formatDate(date: string, isLv: boolean): string {
 }
 
 export function renderNewsDetail(newsId: string, lang: string): string | null {
-  const item = newsData.find((n) => n.id === newsId)
+  const item = getNewsItems().find((n) => n.id === newsId)
   if (!item) return null
 
   const isLv = lang === 'lv'
@@ -36,7 +36,7 @@ export function renderNewsDetail(newsId: string, lang: string): string | null {
 
   return /* html */ `
     <article class="news-detail" id="news-detail">
-      <a href="#page/news" class="news-detail-back">← ${isLv ? 'Atpakaļ uz jaunumiem' : 'Back to News'}</a>
+      <a href="/page/news" class="news-detail-back">← ${isLv ? 'Atpakaļ uz jaunumiem' : 'Back to News'}</a>
 
       <div class="news-detail-hero">
         <img class="news-detail-image" src="${item.image}" alt="" loading="eager" decoding="async" />

@@ -16,7 +16,7 @@ export const documentCategories: { id: DocumentCategory; label: { en: string; lv
   { id: 'reports', label: { en: 'Annual reports', lv: 'Gada pārskati' } },
 ]
 
-export const documentsData: DocumentItem[] = [
+export const staticDocumentsData: DocumentItem[] = [
   {
     id: 'statutes',
     category: 'statutes',

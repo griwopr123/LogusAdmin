@@ -1,4 +1,5 @@
-import { eventsData, type EventItem } from '../data/events-data'
+import type { EventItem } from '../data/events-data'
+import { getEventsItems } from '../services/content-store'
 import { animate, inView } from 'motion'
 import eventCardImage from '../assets/event/event.jpg'
 
@@ -13,9 +14,14 @@ export function renderEventsPage(lang: string): string {
   const isLv = lang === 'lv'
   const title = isLv ? 'Pasākumi' : 'Events'
 
-  const cards = eventsData.map((ev: EventItem) => {
+  const cards = getEventsItems().map((ev: EventItem) => {
     const t = (field: { en: string; lv: string }) => isLv ? field.lv : field.en
-    const catLabel = categoryLabels[ev.category] ? t(categoryLabels[ev.category]) : ev.category
+    const catLabel = ev.format
+      ? t(ev.format)
+      : categoryLabels[ev.category]
+        ? t(categoryLabels[ev.category])
+        : ev.category
+    const cardImage = ev.image ?? eventCardImage
 
     return /* html */ `
       <div class="event-card" data-category="${ev.category}">
@@ -28,7 +34,7 @@ export function renderEventsPage(lang: string): string {
           <span class="event-card-badge">${catLabel}</span>
         </div>
         <div class="event-card-image-wrap">
-          <img class="event-card-image" src="${eventCardImage}" alt="${t(ev.title)}">
+          <img class="event-card-image" src="${cardImage}" alt="${t(ev.title)}">
         </div>
         <div class="event-card-body">
           <h3 class="event-card-title">${t(ev.title)}</h3>
@@ -38,7 +44,7 @@ export function renderEventsPage(lang: string): string {
           </div>
         </div>
         <div class="event-card-footer">
-          <a href="#event/${ev.id}" class="event-card-btn">${isLv ? 'Uzzināt vairāk' : 'Learn More'} →</a>
+          <a href="/event/${ev.id}" class="event-card-btn">${isLv ? 'Uzzināt vairāk' : 'Learn More'} →</a>
         </div>
       </div>
     `

@@ -1,4 +1,4 @@
-import { teamMembers } from './team-page'
+import { getTeamMembers } from '../services/content-store'
 
 const ORG = {
   nameLv: 'Biedrība "LOGUS Debate"',
@@ -128,7 +128,7 @@ export function renderContactsPage(lang: string): string {
     </div>
   `).join('')
 
-  const teamRows = teamMembers
+  const teamRows = getTeamMembers()
     .map((m, i) => {
       const name = pick(isLv, m.name)
       const role = pick(isLv, m.role)

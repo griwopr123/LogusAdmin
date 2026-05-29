@@ -1,4 +1,5 @@
-import { documentsData, documentCategories, type DocumentCategory } from '../data/documents-data'
+import { documentCategories, type DocumentCategory } from '../data/documents-data'
+import { getDocumentItems } from '../services/content-store'
 import { inView, animate } from 'motion'
 
 function pick(isLv: boolean, pair: { en: string; lv: string }): string {
@@ -23,13 +24,13 @@ export function renderDocumentsPage(lang: string): string {
     )
     .join('')
 
-  const cards = documentsData
+  const cards = getDocumentItems()
     .map(
       (doc) => /* html */ `
       <article class="docs-card" data-docs-category="${doc.category}" data-docs-id="${doc.id}">
         <h2 class="docs-card-title">${pick(isLv, doc.title)}</h2>
         <p class="docs-card-excerpt">${pick(isLv, doc.excerpt)}</p>
-        <a href="#document/${doc.id}" class="docs-card-btn">
+        <a href="/document/${doc.id}" class="docs-card-btn">
           ${isLv ? 'Lasīt dokumentu' : 'Read document'}
         </a>
       </article>
@@ -39,6 +40,10 @@ export function renderDocumentsPage(lang: string): string {
 
   return /* html */ `
     <div class="docs-page" id="documents-page">
+      <div class="docs-filters" role="tablist">
+        ${filters}
+      </div>
+
       <div class="docs-list" id="docsList">
         ${cards}
       </div>
@@ -80,7 +85,8 @@ export function setupDocumentsFilter(): void {
     })
   })
 
-  applyFilter('statutes')
+  const firstCategory = filters[0]?.dataset.docsFilter as DocumentCategory | undefined
+  applyFilter(firstCategory ?? 'statutes')
 }
 
 export function setupDocumentsAnimations(): void {

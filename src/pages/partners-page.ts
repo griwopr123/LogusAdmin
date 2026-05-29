@@ -1,4 +1,4 @@
-import { partnersData } from '../data/partners-data'
+import { getPartnerItems } from '../services/content-store'
 import { animate, inView } from 'motion'
 
 function pick(isLv: boolean, pair: { en: string; lv: string }): string {
@@ -8,7 +8,7 @@ function pick(isLv: boolean, pair: { en: string; lv: string }): string {
 export function renderPartnersPage(lang: string): string {
   const isLv = lang === 'lv'
 
-  const items = partnersData
+  const items = getPartnerItems()
     .map(
       (partner) => /* html */ `
       <a

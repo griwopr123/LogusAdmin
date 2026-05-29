@@ -1,11 +1,11 @@
-import { documentsData } from '../data/documents-data'
+import { getDocumentItems } from '../services/content-store'
 
 function pick(isLv: boolean, pair: { en: string; lv: string }): string {
   return isLv ? pair.lv : pair.en
 }
 
 export function renderDocumentDetail(docId: string, lang: string): string | null {
-  const doc = documentsData.find((d) => d.id === docId)
+  const doc = getDocumentItems().find((d) => d.id === docId)
   if (!doc) return null
 
   const isLv = lang === 'lv'
@@ -15,7 +15,7 @@ export function renderDocumentDetail(docId: string, lang: string): string | null
 
   return /* html */ `
     <article class="docs-detail" id="document-detail">
-      <a href="#page/documents" class="docs-detail-back">
+      <a href="/page/documents" class="docs-detail-back">
         ← ${isLv ? 'Atpakaļ uz dokumentiem' : 'Back to documents'}
       </a>
 

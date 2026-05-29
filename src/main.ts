@@ -9,11 +9,14 @@ import './styles/projects.scss'
 import './styles/partners.scss'
 import './styles/rules.scss'
 import './styles/team.scss'
+import './styles/archive.scss'
+import './styles/about.scss'
 import { animate, inView } from 'motion'
 import { renderEventsPage, setupEventsAnimations, categoryLabels } from './pages/events-page'
-import { eventsData, type EventItem } from './data/events-data'
+import type { EventItem } from './data/events-data'
+import { getEventsItems, getSponsorItems, loadSiteContent } from './services/content-store'
 import { renderEventDetail, setupEventDetailAnimations } from './details/event-detail'
-import { renderAboutPage } from './pages/about-page'
+import { renderAboutPage, setupAboutAnimations } from './pages/about-page'
 import { renderDonationPage, setupDonationCopy } from './pages/donation-page'
 import { renderTeamPage, setupTeamAnimations } from './pages/team-page'
 import { renderSecondaryPage } from './pages/secondary-pages'
@@ -24,6 +27,8 @@ import { renderDocumentDetail, setupDocumentDetailAnimations } from './details/d
 import { renderProjectDetail, setupProjectDetailAnimations, setupProjectCarousel } from './details/project-detail'
 import { setupDocumentsFilter, setupDocumentsAnimations } from './pages/documents-page'
 import { setupProjectsAnimations } from './pages/projects-page'
+import { setupArchivePage } from './pages/archive-page'
+import { getRouteFromLocation, hrefForRoute, migrateLegacyHash, pushRoute } from './utils/routes'
 import { searchSite, highlightSearchText, invalidateSearchIndex, type SearchResult } from './utils/site-search'
 
 const translations = {
@@ -159,12 +164,13 @@ const renderDrawerSecondaryLinks = (lang: string) => {
   const isLv = lang === 'lv'
 
   return /* html */ `
-    <li><a class="drawer-secondary-link" href="#page/news">${isLv ? 'Jaunumi' : 'News'}</a></li>
-    <li><a class="drawer-secondary-link" href="#page/faq">${isLv ? 'BUJ' : 'FAQ'}</a></li>
-    <li><a class="drawer-secondary-link" href="#page/rules">${isLv ? 'Noteikumi' : 'Rules'}</a></li>
-    <li><a class="drawer-secondary-link" href="#page/partners">${isLv ? 'Partneri' : 'Partners'}</a></li>
-    <li><a class="drawer-secondary-link" href="#page/contacts">${isLv ? 'Kontakti' : 'Contacts'}</a></li>
-    <li><a class="drawer-secondary-link" href="#page/documents">${isLv ? 'Dokumenti' : 'Documents'}</a></li>
+    <li><a class="drawer-secondary-link" href="/page/news">${isLv ? 'Jaunumi' : 'News'}</a></li>
+    <li><a class="drawer-secondary-link" href="/page/faq">${isLv ? 'BUJ' : 'FAQ'}</a></li>
+    <li><a class="drawer-secondary-link" href="/page/rules">${isLv ? 'Noteikumi' : 'Rules'}</a></li>
+    <li><a class="drawer-secondary-link" href="/page/partners">${isLv ? 'Partneri' : 'Partners'}</a></li>
+    <li><a class="drawer-secondary-link" href="/page/arhive">${isLv ? 'Arhīvs' : 'Archive'}</a></li>
+    <li><a class="drawer-secondary-link" href="/page/contacts">${isLv ? 'Kontakti' : 'Contacts'}</a></li>
+    <li><a class="drawer-secondary-link" href="/page/documents">${isLv ? 'Dokumenti' : 'Documents'}</a></li>
   `
 }
 
@@ -173,16 +179,16 @@ const renderDropdownSecondaryLinks = (lang: string) => {
 
   return /* html */ `
     <ul class="nav-more-list">
-      <li><a class="nav-dropdown-link" href="#home">${isLv ? 'Sākums' : 'Home'}</a></li>
-      <li><a class="nav-dropdown-link" href="#events">${isLv ? 'Pasākumi' : 'Events'}</a></li>
-      <li><a class="nav-dropdown-link" href="#page/news">${isLv ? 'Jaunumi' : 'News'}</a></li>
-      <li><a class="nav-dropdown-link" href="#page/faq">${isLv ? 'BUJ' : 'FAQ'}</a></li>
-      <li><a class="nav-dropdown-link" href="#page/rules">${isLv ? 'Noteikumi' : 'Rules'}</a></li>
-      <li><a class="nav-dropdown-link" href="#page/partners">${isLv ? 'Partneri' : 'Partners'}</a></li>
-      <li><a class="nav-dropdown-link" href="#page/projects">${isLv ? 'Projekta' : 'Project'}</a></li>
-      <li><a class="nav-dropdown-link" href="#page/contacts">${isLv ? 'Arhīva' : 'Arhive'}</a></li>
-      <li><a class="nav-dropdown-link" href="#page/documents">${isLv ? 'Dokumenti' : 'Documents'}</a></li>
-      <li><a class="nav-dropdown-link" href="#page/contacts">${isLv ? 'Kontakti' : 'Contacts'}</a></li>
+      <li><a class="nav-dropdown-link" href="/">${isLv ? 'Sākums' : 'Home'}</a></li>
+      <li><a class="nav-dropdown-link" href="/events">${isLv ? 'Pasākumi' : 'Events'}</a></li>
+      <li><a class="nav-dropdown-link" href="/page/news">${isLv ? 'Jaunumi' : 'News'}</a></li>
+      <li><a class="nav-dropdown-link" href="/page/faq">${isLv ? 'BUJ' : 'FAQ'}</a></li>
+      <li><a class="nav-dropdown-link" href="/page/rules">${isLv ? 'Noteikumi' : 'Rules'}</a></li>
+      <li><a class="nav-dropdown-link" href="/page/partners">${isLv ? 'Partneri' : 'Partners'}</a></li>
+      <li><a class="nav-dropdown-link" href="/page/projects">${isLv ? 'Projekta' : 'Project'}</a></li>
+      <li><a class="nav-dropdown-link" href="/page/arhive">${isLv ? 'Arhīvs' : 'Archive'}</a></li>
+      <li><a class="nav-dropdown-link" href="/page/documents">${isLv ? 'Dokumenti' : 'Documents'}</a></li>
+      <li><a class="nav-dropdown-link" href="/page/contacts">${isLv ? 'Kontakti' : 'Contacts'}</a></li>
     </ul>
   `
 }
@@ -199,7 +205,7 @@ function renderSiteHeader(active?: NavActive) {
     <nav>
       <div class="nav-left">
         <div class="logo">
-          <a href="#home" style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;color:inherit;">
+          <a href="/" style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;color:inherit;">
             <img src="/logo.png" alt="LOGUS Debate Logo">
             <!-- <span>LOGUS</span> -->
           </a>
@@ -219,11 +225,11 @@ function renderSiteHeader(active?: NavActive) {
       </div>
       <div class="nav-cluster">
         <ul class="nav-links" id="navLinks">
-          <li class="nav-drawer-only"><a href="#home">${t('home')}</a></li>
-          <li class="nav-drawer-only"><a href="#events">${t('events')}</a></li>
-          <li><a href="#about"${navActiveClass(active, 'about')}>${t('about')}</a></li>
-          <li><a href="#team"${navActiveClass(active, 'team')}>${t('team')}</a></li>
-          <li><a href="#donation"${navActiveClass(active, 'donation')}>${t('donation')}</a></li>
+          <li class="nav-drawer-only"><a href="/">${t('home')}</a></li>
+          <li class="nav-drawer-only"><a href="/events">${t('events')}</a></li>
+          <li><a href="/about"${navActiveClass(active, 'about')}>${t('about')}</a></li>
+          <li><a href="/team"${navActiveClass(active, 'team')}>${t('team')}</a></li>
+          <li><a href="/donation"${navActiveClass(active, 'donation')}>${t('donation')}</a></li>
           <li class="drawer-divider"></li>
           <li class="drawer-title">${currentLanguage === 'lv' ? 'Papildus' : 'More'}</li>
           ${renderDrawerSecondaryLinks(currentLanguage)}
@@ -271,14 +277,16 @@ function getEventStatus(ev: EventItem): 'open' | 'live' | 'concluded' {
 
 function renderHomeEventsSection(): string {
   const isLv = currentLanguage === 'lv'
-  const sorted = [...eventsData].sort((a, b) => a.date.localeCompare(b.date))
+  const sorted = [...getEventsItems()].sort((a, b) => a.date.localeCompare(b.date))
 
   const rows = sorted.map((ev) => {
     const title = isLv ? ev.title.lv : ev.title.en
     const desc = isLv ? ev.description.lv : ev.description.en
-    const cat = categoryLabels[ev.category]
-      ? (isLv ? categoryLabels[ev.category].lv : categoryLabels[ev.category].en)
-      : ev.category
+    const cat = ev.format
+      ? (isLv ? ev.format.lv : ev.format.en)
+      : categoryLabels[ev.category]
+        ? (isLv ? categoryLabels[ev.category].lv : categoryLabels[ev.category].en)
+        : ev.category
     const status = getEventStatus(ev)
     const statusKey = status === 'open' ? 'statusOpen' : status === 'live' ? 'statusLive' : 'statusConcluded'
     const statusLabel = t(statusKey)
@@ -286,7 +294,7 @@ function renderHomeEventsSection(): string {
     const statusClass = `event-status event-status--${status}`
 
     return /* html */ `
-      <a class="event-list-row" href="#event/${ev.id}">
+      <a class="event-list-row" href="${hrefForRoute(`event/${ev.id}`)}">
         <div class="event-list-meta">
           <time class="event-list-date" datetime="${ev.date}">${dateFmt}</time>
           <span class="${statusClass}">
@@ -316,6 +324,41 @@ function renderHomeEventsSection(): string {
   `
 }
 
+function renderHomeSponsorsSection(): string {
+  const sponsors = getSponsorItems()
+
+  const slides =
+    sponsors.length > 0
+      ? sponsors
+          .map(
+            (sponsor) => /* html */ `
+          <div class="swiper-slide">
+            <img src="${sponsor.image}" alt="Sponsor" loading="lazy" decoding="async">
+          </div>
+        `,
+          )
+          .join('')
+      : [1, 2, 3, 4, 5, 6]
+          .map(
+            (n) => /* html */ `
+          <div class="swiper-slide">
+            <div class="swiper-slide-sponsor-text">${t('sponsor')} ${n}</div>
+          </div>
+        `,
+          )
+          .join('')
+
+  return /* html */ `
+    <section class="sponsors" id="sponsors">
+      <div class="swiper" id="sponsorSwiper">
+        <div class="swiper-wrapper">
+          ${slides}
+        </div>
+      </div>
+    </section>
+  `
+}
+
 function renderClubIntroSection(): string {
   return /* html */ `
     <section class="club-split" id="club-intro" aria-labelledby="club-intro-heading">
@@ -328,7 +371,7 @@ function renderClubIntroSection(): string {
           <li>${t('clubPoint2')}</li>
           <li>${t('clubPoint3')}</li>
         </ul>
-        <a href="#about" class="btn btn-club-outline">${t('clubCta')}</a>
+        <a href="/about" class="btn btn-club-outline">${t('clubCta')}</a>
       </div>
     </section>
   `
@@ -341,10 +384,10 @@ const renderSharedFooter = () => /* html */ `
         <h3>LOGUS Debate</h3>
         <p>${currentLanguage === 'en' ? 'Latvia\'s leading debate club dedicated to youth intellectual and personal development.' : currentLanguage === 'lv' ? 'Latvijas vadošais debašu klubs, veltīts jaunatnes intelektuālajai un personīgajai attīstībai.' : 'Ведущий дебатный клуб Латвии, посвященный интеллектуальному и личному развитию молодежи.'}</p>
         <div class="social-links">
-          <a href="#" title="Facebook">f</a>
-          <a href="#" title="Instagram">in</a>
-          <a href="#" title="Twitter">x</a>
-          <a href="#" title="LinkedIn">in</a>
+          <a href="javascript:void(0)" title="Facebook">f</a>
+          <a href="javascript:void(0)" title="Instagram">in</a>
+          <a href="javascript:void(0)" title="Twitter">x</a>
+          <a href="javascript:void(0)" title="LinkedIn">in</a>
         </div>
       </div>
       <div class="footer-section">
@@ -356,12 +399,11 @@ const renderSharedFooter = () => /* html */ `
       </div>
       <div class="footer-section">
         <h3>${t('quickLinks')}</h3>
-        <ul style="list-style: none;">
-          <li><a href="#home">${t('home')}</a></li>
-          <li><a href="#about">${t('about')}</a></li>
-          <li><a href="#events">${t('events')}</a></li>
-                    <li><a href="#events">${t('events')}</a></li>
-          <li><a href="#sponsors">${t('partners')}</a></li>
+        <ul class="footer-quick-links">
+          <li><a href="/">${t('home')}</a></li>
+          <li><a href="/about">${t('about')}</a></li>
+          <li><a href="/events">${t('events')}</a></li>
+          <li><a href="/page/partners">${t('partners')}</a></li>
         </ul>
       </div>
       <div class="footer-section">
@@ -393,8 +435,8 @@ function renderPage() {
             <span class="hero-headline-line"><span class="hero-highlight">${t('heroHighlight')}</span> ${t('heroLine2')}</span>
           </h1>
           <div class="hero-actions">
-            <a href="#club-intro" class="btn btn-hero-primary">${t('meetUs')}</a>
-            <a href="#upcoming-events" class="btn btn-hero-ghost">${t('events')}</a>
+            <a href="/club-intro" class="btn btn-hero-primary">${t('meetUs')}</a>
+            <a href="/upcoming-events" class="btn btn-hero-ghost">${t('events')}</a>
           </div>
         </div>
       </div>
@@ -404,31 +446,7 @@ function renderPage() {
 
     ${renderClubIntroSection()}
 
-    <section class="sponsors" id="sponsors">
-      <!-- <h2>${t('sponsors')}</h2> -->
-      <div class="swiper" id="sponsorSwiper">
-        <div class="swiper-wrapper">
-          <div class="swiper-slide">
-            <div class="swiper-slide-sponsor-text">${t('sponsor')} 1</div>
-          </div>
-          <div class="swiper-slide">
-            <div class="swiper-slide-sponsor-text">${t('sponsor')} 2</div>
-          </div>
-          <div class="swiper-slide">
-            <div class="swiper-slide-sponsor-text">${t('sponsor')} 3</div>
-          </div>
-          <div class="swiper-slide">
-            <div class="swiper-slide-sponsor-text">${t('sponsor')} 4</div>
-          </div>
-          <div class="swiper-slide">
-            <div class="swiper-slide-sponsor-text">${t('sponsor')} 5</div>
-          </div>
-          <div class="swiper-slide">
-            <div class="swiper-slide-sponsor-text">${t('sponsor')} 6</div>
-          </div>
-        </div>
-      </div>
-    </section>
+    ${renderHomeSponsorsSection()}
   </main>
 
   ${renderSharedFooter()}
@@ -449,6 +467,7 @@ function renderAboutView() {
   `
   setupEventListeners()
   setupScrollAnimation()
+  setupAboutAnimations()
 }
 
 function renderTeamView() {
@@ -534,6 +553,9 @@ function renderSecondaryView(slug: string) {
   if (slug === 'projects' || slug === 'project') {
     setupProjectsAnimations()
   }
+  if (slug === 'arhive' || slug === 'archive') {
+    setupArchivePage(currentLanguage)
+  }
 }
 
 function renderDocumentDetailView(docId: string) {
@@ -588,48 +610,50 @@ function renderProjectDetailView(projectId: string) {
   setupProjectCarousel()
 }
 
-function navigateTo(hash: string) {
-  window.location.hash = hash
+function navigateTo(route: string) {
+  pushRoute(route)
+  handleRoute()
 }
 
 function handleRoute() {
-  const hash = window.location.hash.slice(1) || 'home'
+  migrateLegacyHash()
+  const route = getRouteFromLocation()
   window.scrollTo(0, 0)
 
-  if (hash === 'events') {
+  if (route === 'events') {
     renderEventsView()
-  } else if (hash === 'about') {
+  } else if (route === 'about') {
     renderAboutView()
-  } else if (hash === 'team') {
+  } else if (route === 'team') {
     renderTeamView()
-  } else if (hash === 'donation') {
+  } else if (route === 'donation') {
     renderDonationView()
-  } else if (hash.startsWith('page/')) {
-    const pageSlug = hash.split('/')[1]
+  } else if (route.startsWith('page/')) {
+    const pageSlug = route.split('/')[1]
     renderSecondaryView(pageSlug)
-  } else if (hash.startsWith('news/')) {
-    const newsId = hash.split('/')[1]
+  } else if (route.startsWith('news/')) {
+    const newsId = route.split('/')[1]
     renderNewsDetailView(newsId)
-  } else if (hash.startsWith('document/')) {
-    const docId = hash.split('/')[1]
+  } else if (route.startsWith('document/')) {
+    const docId = route.split('/')[1]
     renderDocumentDetailView(docId)
-  } else if (hash.startsWith('event/')) {
-    const eventId = hash.split('/')[1]
+  } else if (route.startsWith('event/')) {
+    const eventId = route.split('/')[1]
     renderEventView(eventId)
-  } else if (hash.startsWith('project/')) {
-    const projectId = hash.slice('project/'.length)
+  } else if (route.startsWith('project/')) {
+    const projectId = route.slice('project/'.length)
     renderProjectDetailView(projectId)
   } else {
     renderPage()
-    if (hash !== 'home') {
+    if (route !== 'home') {
       setTimeout(() => {
-        document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth' })
+        document.getElementById(route)?.scrollIntoView({ behavior: 'smooth' })
       }, 100)
     }
   }
 }
 
-window.addEventListener('hashchange', handleRoute)
+window.addEventListener('popstate', handleRoute)
 
 function setupHeroComparisonSlider() {
   const slider = document.getElementById('heroSlider')
@@ -802,11 +826,11 @@ function setupNavSearch(
   let activeIndex = -1
   let currentResults: SearchResult[] = []
 
-  const goTo = (hash: string) => {
+  const goTo = (route: string) => {
     closeSearch()
     input.value = ''
     hideResults()
-    window.location.hash = hash.replace(/^#/, '')
+    navigateTo(route.replace(/^#/, ''))
   }
 
   const hideResults = () => {
@@ -842,7 +866,7 @@ function setupNavSearch(
         class="nav-search-result"
         role="option"
         data-index="${i}"
-        data-hash="${r.hash}"
+        data-route="${r.route}"
         id="navSearchOption-${i}"
       >
         <span class="nav-search-result-title">${highlightSearchText(r.title, query)}</span>
@@ -857,8 +881,8 @@ function setupNavSearch(
     resultsEl.querySelectorAll('.nav-search-result').forEach((btn) => {
       btn.addEventListener('mousedown', (e) => {
         e.preventDefault()
-        const hash = (btn as HTMLElement).dataset.hash
-        if (hash) goTo(hash)
+        const route = (btn as HTMLElement).dataset.route
+        if (route) goTo(route)
       })
     })
   }
@@ -892,7 +916,7 @@ function setupNavSearch(
     }
     if (currentResults.length > 0) {
       const idx = activeIndex >= 0 ? activeIndex : 0
-      goTo(currentResults[idx].hash)
+      goTo(currentResults[idx].route)
     }
   }
 
@@ -916,7 +940,7 @@ function setupNavSearch(
     } else if (e.key === 'Enter') {
       e.preventDefault()
       if (activeIndex >= 0 && currentResults[activeIndex]) {
-        goTo(currentResults[activeIndex].hash)
+        goTo(currentResults[activeIndex].route)
       } else {
         navigateFirst()
       }
@@ -1004,6 +1028,11 @@ function setupScrollAnimation() {
   })
 }
 
+async function bootstrap() {
+  migrateLegacyHash()
+  await loadSiteContent()
+  invalidateSearchIndex()
+  handleRoute()
+}
 
-
-handleRoute()
+bootstrap()

@@ -6,7 +6,7 @@ export interface PartnerItem {
   url: string
 }
 
-export const partnersData: PartnerItem[] = [
+export const staticPartnersData: PartnerItem[] = [
   {
     id: 'british-council',
     category: { en: 'Education', lv: 'Izglītība' },
