@@ -14,7 +14,8 @@ export interface ArchiveTab {
 export interface ArchivePhoto {
   id: string
   src: string
-  caption: { en: string; lv: string }
+  /** ISO date YYYY-MM-DD */
+  photoDate: string
 }
 
 export const archiveTabs: ArchiveTab[] = [
@@ -173,34 +174,10 @@ export const archiveTabs: ArchiveTab[] = [
 ]
 
 export const archivePhotos: ArchivePhoto[] = [
-  {
-    id: 'photo-1',
-    src: '/bg-image.jpg',
-    caption: { en: 'Training session, Riga', lv: 'Treniņš, Rīga' },
-  },
-  {
-    id: 'photo-2',
-    src: '/about.jpg',
-    caption: { en: 'Tournament day', lv: 'Turnīra diena' },
-  },
-  {
-    id: 'photo-3',
-    src: '/bg-image.jpg',
-    caption: { en: 'Team briefing before rounds', lv: 'Komandas sapulce pirms raundiem' },
-  },
-  {
-    id: 'photo-4',
-    src: '/about.jpg',
-    caption: { en: 'Awards ceremony', lv: 'Apbalvošanas ceremonija' },
-  },
-  {
-    id: 'photo-5',
-    src: '/bg-image.jpg',
-    caption: { en: 'Summer debate school', lv: 'Vasaras debašu skola' },
-  },
-  {
-    id: 'photo-6',
-    src: '/about.jpg',
-    caption: { en: 'Community gathering', lv: 'Kopienas tikšanās' },
-  },
+  { id: 'photo-1', src: '/bg-image.jpg', photoDate: '2024-03-15' },
+  { id: 'photo-2', src: '/about.jpg', photoDate: '2024-11-22' },
+  { id: 'photo-3', src: '/bg-image.jpg', photoDate: '2025-05-08' },
+  { id: 'photo-4', src: '/about.jpg', photoDate: '2025-09-14' },
+  { id: 'photo-5', src: '/bg-image.jpg', photoDate: '2026-02-01' },
+  { id: 'photo-6', src: '/about.jpg', photoDate: '2026-05-28' },
 ]

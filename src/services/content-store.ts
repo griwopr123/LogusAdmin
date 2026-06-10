@@ -5,6 +5,7 @@ import type { SponsorItem } from '../data/sponsors-data'
 import { staticDocumentsData, type DocumentItem } from '../data/documents-data'
 import { staticProjectsData, type ProjectItem } from '../data/projects-data'
 import { staticTeamMembers, type TeamMember } from '../data/team-data'
+import { archivePhotos as staticArchivePhotos, type ArchivePhoto } from '../data/archive-data'
 import { fetchApiList, mediaUrl } from '../utils/api'
 
 interface ApiNewsItem {
@@ -40,6 +41,15 @@ interface ApiSponsorItem {
   image: string
 }
 
+interface ApiArchivePhotoItem {
+  id: number | string
+  image: string
+  photo_date?: string
+  created_at?: string
+  caption_en?: string
+  caption_lv?: string
+}
+
 interface ApiTeamItem {
   id: number | string
   first_name_en: string
@@ -63,6 +73,9 @@ interface ApiPartnerItem {
 interface ApiProjectItem {
   id: number | string
   image: string
+  gallery?: string[]
+  sponsor_logos?: string[]
+  funded?: boolean
   title_en: string
   title_lv: string
   text_en: string
@@ -107,6 +120,7 @@ let teamItems: TeamMember[] = [...staticTeamMembers]
 let partnerItems: PartnerItem[] = [...staticPartnersData]
 let projectItems: ProjectItem[] = [...staticProjectsData]
 let documentItems: DocumentItem[] = [...staticDocumentsData]
+let archivePhotoItems: ArchivePhoto[] = [...staticArchivePhotos]
 let contentSource: 'api' | 'static' = 'static'
 
 function bodyParagraphs(text: string): string[] {
@@ -128,15 +142,42 @@ function excerptFromBody(text: string, maxLen = 160): string {
   return `${(lastSpace > 40 ? slice.slice(0, lastSpace) : slice).trim()}…`
 }
 
+/** API/admin: "2026-05-28 00:00:00", "2026-05-28T18:47", or "2026-05-28" → "2026-05-28" */
+function normalizeEventDateIso(dateStr: string): string | null {
+  const trimmed = dateStr.trim()
+  if (!trimmed) return null
+
+  const isoMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (isoMatch) {
+    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`
+  }
+
+  const parsed = Date.parse(trimmed.includes(' ') ? trimmed.replace(' ', 'T') : trimmed)
+  if (Number.isNaN(parsed)) return null
+
+  const d = new Date(parsed)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 function eventDateParts(dateStr: string): Pick<EventItem, 'date' | 'day' | 'month' | 'year'> {
-  const [year, month, day] = dateStr.split('-')
+  const iso = normalizeEventDateIso(dateStr)
+  const empty = { date: '', day: '', month: { en: '', lv: '' }, year: '' }
+  if (!iso) return empty
+
+  const [year, month, day] = iso.split('-')
   const monthIndex = Math.max(0, Math.min(11, parseInt(month, 10) - 1))
-  const enMonth = new Date(`${dateStr}T12:00:00`).toLocaleString('en-US', { month: 'short' }).toUpperCase()
+  const stamp = new Date(`${iso}T12:00:00`)
+  const enMonth = Number.isNaN(stamp.getTime())
+    ? ''
+    : stamp.toLocaleString('en-US', { month: 'short' }).toUpperCase()
 
   return {
-    date: dateStr,
+    date: iso,
     day: String(parseInt(day, 10)),
-    month: { en: enMonth, lv: LV_MONTHS[monthIndex] ?? enMonth },
+    month: { en: enMonth || '—', lv: LV_MONTHS[monthIndex] ?? enMonth },
     year,
   }
 }
@@ -215,13 +256,30 @@ function mapProjectItem(raw: ApiProjectItem): ProjectItem {
   const image = mediaUrl(raw.image)
   const bodyEn = bodyParagraphs(raw.text_en)
   const bodyLv = bodyParagraphs(raw.text_lv)
+  const galleryRaw = Array.isArray(raw.gallery) ? raw.gallery : []
+  const gallery = galleryRaw
+    .map((path) => mediaUrl(path))
+    .filter((path) => path.trim() !== '')
+
+  const uniqueGallery = gallery.length > 0
+    ? [...new Set(gallery)]
+    : [image]
+
+  if (!uniqueGallery.includes(image)) {
+    uniqueGallery.unshift(image)
+  }
+
+  const sponsorLogos = (Array.isArray(raw.sponsor_logos) ? raw.sponsor_logos : [])
+    .map((path) => mediaUrl(path))
+    .filter((path) => path.trim() !== '')
 
   return {
     id: String(raw.id),
     image,
     heroImage: image,
-    gallery: [image],
-    funded: false,
+    gallery: uniqueGallery,
+    sponsorLogos,
+    funded: sponsorLogos.length > 0 || Boolean(raw.funded),
     title: { en: raw.title_en, lv: raw.title_lv },
     excerpt: {
       en: excerptFromBody(raw.text_en),
@@ -235,6 +293,29 @@ function mapProjectItem(raw: ApiProjectItem): ProjectItem {
       en: bodyEn.length > 0 ? bodyEn : [raw.text_en],
       lv: bodyLv.length > 0 ? bodyLv : [raw.text_lv],
     },
+  }
+}
+
+function resolveArchivePhotoDate(raw: ApiArchivePhotoItem): string {
+  const explicit = (raw.photo_date ?? '').trim()
+  if (/^\d{4}-\d{2}-\d{2}/.test(explicit)) {
+    return explicit.slice(0, 10)
+  }
+
+  const created = (raw.created_at ?? '').trim()
+  const createdMatch = created.match(/^(\d{4}-\d{2}-\d{2})/)
+  if (createdMatch) {
+    return createdMatch[1]
+  }
+
+  return new Date().toISOString().slice(0, 10)
+}
+
+function mapArchivePhoto(raw: ApiArchivePhotoItem): ArchivePhoto {
+  return {
+    id: String(raw.id),
+    src: mediaUrl(raw.image),
+    photoDate: resolveArchivePhotoDate(raw),
   }
 }
 
@@ -276,21 +357,34 @@ export function getDocumentItems(): DocumentItem[] {
   return documentItems
 }
 
+export function getArchivePhotos(): ArchivePhoto[] {
+  return archivePhotoItems
+}
+
 export function getContentSource(): 'api' | 'static' {
   return contentSource
 }
 
 export async function loadSiteContent(): Promise<void> {
-  const [newsResult, eventsResult, sponsorsResult, teamResult, partnersResult, projectsResult, documentsResult] =
-    await Promise.allSettled([
-      fetchApiList<ApiNewsItem>('news.php'),
-      fetchApiList<ApiEventItem>('events.php'),
-      fetchApiList<ApiSponsorItem>('sponsors.php'),
-      fetchApiList<ApiTeamItem>('team.php'),
-      fetchApiList<ApiPartnerItem>('partners.php'),
-      fetchApiList<ApiProjectItem>('projects.php'),
-      fetchApiList<ApiDocumentItem>('documents.php'),
-    ])
+  const [
+    newsResult,
+    eventsResult,
+    sponsorsResult,
+    teamResult,
+    partnersResult,
+    projectsResult,
+    documentsResult,
+    archiveResult,
+  ] = await Promise.allSettled([
+    fetchApiList<ApiNewsItem>('news.php'),
+    fetchApiList<ApiEventItem>('events.php'),
+    fetchApiList<ApiSponsorItem>('sponsors.php'),
+    fetchApiList<ApiTeamItem>('team.php'),
+    fetchApiList<ApiPartnerItem>('partners.php'),
+    fetchApiList<ApiProjectItem>('projects.php'),
+    fetchApiList<ApiDocumentItem>('documents.php'),
+    fetchApiList<ApiArchivePhotoItem>('archive.php'),
+  ])
 
   let apiConnected = false
 
@@ -348,6 +442,14 @@ export async function loadSiteContent(): Promise<void> {
   } else {
     console.warn('[LOGUS] documents.php failed, using static documents.', documentsResult.reason)
     documentItems = [...staticDocumentsData]
+  }
+
+  if (archiveResult.status === 'fulfilled') {
+    archivePhotoItems = archiveResult.value.map(mapArchivePhoto)
+    apiConnected = true
+  } else {
+    console.warn('[LOGUS] archive.php failed, using static archive photos.', archiveResult.reason)
+    archivePhotoItems = [...staticArchivePhotos]
   }
 
   contentSource = apiConnected ? 'api' : 'static'

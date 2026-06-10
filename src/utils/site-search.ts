@@ -9,7 +9,6 @@ import {
 import { faqData } from '../data/faq-data'
 import { rulesData } from '../data/rules-data'
 import { secondaryPages } from '../pages/secondary-pages'
-import { categoryLabels } from '../pages/events-page'
 
 export type SearchResultKind = 'page' | 'event' | 'person' | 'section' | 'news'
 
@@ -138,10 +137,6 @@ function buildIndex(lang: string): SearchIndexEntry[] {
     const title = isLv ? ev.title.lv : ev.title.en
     const desc = isLv ? ev.description.lv : ev.description.en
     const loc = isLv ? ev.location.lv : ev.location.en
-    const cat = categoryLabels[ev.category]
-      ? (isLv ? categoryLabels[ev.category].lv : categoryLabels[ev.category].en)
-      : ev.category
-
     entries.push({
       id: `event-${ev.id}`,
       title,
@@ -152,9 +147,7 @@ function buildIndex(lang: string): SearchIndexEntry[] {
         title,
         desc,
         loc,
-        cat,
         ev.id,
-        ev.category,
         ...dateSearchTerms(ev.date, ev.month),
       ],
     })

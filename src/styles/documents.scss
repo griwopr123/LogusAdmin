@@ -1,49 +1,32 @@
 $docs-red: hsl(355, 78%, 56%);
-$docs-cream: #f2f0e8;
-$docs-muted: #666666;
 
 .docs-page {
-  background: $docs-cream;
+  background: var(--bg-primary);
   color: var(--text-primary);
   min-height: calc(100vh - 80px);
   padding: 2.5rem 1.5rem 4rem;
-}
-
-.docs-filters {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.65rem;
   max-width: 640px;
-  margin: 0 auto 2rem;
+  margin: 0 auto;
 }
 
-.docs-filter {
-  padding: 0.55rem 1.35rem;
-  border: none;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.08);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 0.78rem;
+.docs-page-title {
+  margin: 0 0 0.65rem;
+  font-size: clamp(2rem, 5vw, 2.75rem);
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.25s ease, color 0.25s ease, transform 0.15s ease;
+}
 
-  &:hover:not(.is-active) {
-    background: rgba(0, 0, 0, 0.12);
-  }
-
-  &.is-active {
-    background: $docs-red;
-    color: #ffffff;
-  }
+.docs-page-subtitle {
+  margin: 0 0 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border-color);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
 }
 
 .docs-list {
-  max-width: 640px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -54,15 +37,25 @@ $docs-muted: #666666;
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1.5rem 1.35rem;
-  background: #ffffff;
+  background: var(--bg-secondary);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   opacity: 0;
-  transition: box-shadow 0.25s ease, transform 0.25s ease;
+  transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
 
   &:hover {
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
     transform: translateY(-2px);
+    border-color: var(--text-primary);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  body.dark-mode & {
+    border-color: rgba(255, 255, 255, 0.1);
+
+    &:hover {
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
   }
 }
 
@@ -81,7 +74,7 @@ $docs-muted: #666666;
   flex: 1;
   font-size: 0.95rem;
   line-height: 1.65;
-  color: $docs-muted;
+  color: var(--text-secondary);
 }
 
 .docs-card-btn {
@@ -89,7 +82,7 @@ $docs-muted: #666666;
   padding: 0.5rem 1.25rem;
   border: 1.5px solid var(--text-primary);
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--bg-primary);
   color: var(--text-primary);
   font-size: 0.72rem;
   font-weight: 800;
@@ -100,17 +93,9 @@ $docs-muted: #666666;
 
   &:hover {
     background: var(--text-primary);
-    color: #ffffff;
+    color: var(--bg-primary);
     border-color: var(--text-primary);
   }
-}
-
-.docs-empty {
-  max-width: 640px;
-  margin: 2rem auto 0;
-  text-align: center;
-  font-size: 0.95rem;
-  color: $docs-muted;
 }
 
 /* Detail — formal document layout */
@@ -128,7 +113,7 @@ $docs-muted: #666666;
   margin-bottom: 1rem;
   font-size: 0.9rem;
   font-weight: 600;
-  color: $docs-muted;
+  color: var(--text-secondary);
   text-decoration: none;
 
   &:hover {

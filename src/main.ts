@@ -12,7 +12,7 @@ import './styles/team.scss'
 import './styles/archive.scss'
 import './styles/about.scss'
 import { animate, inView } from 'motion'
-import { renderEventsPage, setupEventsAnimations, categoryLabels } from './pages/events-page'
+import { renderEventsPage, setupEventsAnimations } from './pages/events-page'
 import type { EventItem } from './data/events-data'
 import { getEventsItems, getSponsorItems, loadSiteContent } from './services/content-store'
 import { renderEventDetail, setupEventDetailAnimations } from './details/event-detail'
@@ -25,7 +25,7 @@ import { setupNewsAnimations } from './pages/news-page'
 import { setupFaqForm, setupFaqAccordion, setupFaqAnimations } from './pages/faq-page'
 import { renderDocumentDetail, setupDocumentDetailAnimations } from './details/document-detail'
 import { renderProjectDetail, setupProjectDetailAnimations, setupProjectCarousel } from './details/project-detail'
-import { setupDocumentsFilter, setupDocumentsAnimations } from './pages/documents-page'
+import { setupDocumentsAnimations } from './pages/documents-page'
 import { setupProjectsAnimations } from './pages/projects-page'
 import { setupArchivePage } from './pages/archive-page'
 import { getRouteFromLocation, hrefForRoute, migrateLegacyHash, pushRoute } from './utils/routes'
@@ -265,6 +265,19 @@ function renderSiteHeader(active?: NavActive) {
   `
 }
 
+function formatEventListDate(dateRaw: string): string {
+  const trimmed = dateRaw.trim()
+  return trimmed.replace(/-/g, '.').replace(/(\d{1,2}:\d{2}):\d{2}\b/, '$1')
+}
+
+function eventListDatetimeAttr(dateRaw: string): string {
+  const trimmed = dateRaw.trim()
+  if (trimmed.includes(' ')) {
+    return trimmed.replace(' ', 'T').replace(/:\d{2}$/, '')
+  }
+  return trimmed
+}
+
 function getEventStatus(ev: EventItem): 'open' | 'live' | 'concluded' {
   const d = new Date(ev.date + 'T12:00:00')
   const today = new Date()
@@ -282,28 +295,22 @@ function renderHomeEventsSection(): string {
   const rows = sorted.map((ev) => {
     const title = isLv ? ev.title.lv : ev.title.en
     const desc = isLv ? ev.description.lv : ev.description.en
-    const cat = ev.format
-      ? (isLv ? ev.format.lv : ev.format.en)
-      : categoryLabels[ev.category]
-        ? (isLv ? categoryLabels[ev.category].lv : categoryLabels[ev.category].en)
-        : ev.category
     const status = getEventStatus(ev)
     const statusKey = status === 'open' ? 'statusOpen' : status === 'live' ? 'statusLive' : 'statusConcluded'
     const statusLabel = t(statusKey)
-    const dateFmt = ev.date.replace(/-/g, '.')
+    const dateFmt = formatEventListDate(ev.date)
     const statusClass = `event-status event-status--${status}`
 
     return /* html */ `
       <a class="event-list-row" href="${hrefForRoute(`event/${ev.id}`)}">
         <div class="event-list-meta">
-          <time class="event-list-date" datetime="${ev.date}">${dateFmt}</time>
+          <time class="event-list-date" datetime="${eventListDatetimeAttr(ev.date)}">${dateFmt}</time>
           <span class="${statusClass}">
             ${status === 'live' ? '<span class="event-status-dot" aria-hidden="true"></span>' : ''}
             <span class="event-status-text">${statusLabel}</span>
           </span>
         </div>
         <div class="event-list-body">
-          <span class="event-list-cat">${cat}</span>
           <span class="event-list-title">${title}</span>
           <span class="event-list-desc">${desc}</span>
         </div>
@@ -488,7 +495,7 @@ function renderTeamView() {
 function renderEventsView() {
   app.innerHTML = /* html */ `
   ${renderSiteHeader()}
-  <main class="page-main">
+  <main class="page-main page-main--events">
     ${renderEventsPage(currentLanguage)}
   </main>
   ${renderSharedFooter()}
@@ -517,7 +524,7 @@ function renderEventView(eventId: string) {
 
   app.innerHTML = /* html */ `
   ${renderSiteHeader()}
-  <main class="page-main">
+  <main class="page-main page-main--events">
     ${detail}
   </main>
   ${renderSharedFooter()}
@@ -547,7 +554,6 @@ function renderSecondaryView(slug: string) {
     setupFaqForm(currentLanguage)
   }
   if (slug === 'documents') {
-    setupDocumentsFilter()
     setupDocumentsAnimations()
   }
   if (slug === 'projects' || slug === 'project') {

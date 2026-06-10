@@ -1,4 +1,5 @@
 import { getEventsItems } from '../services/content-store'
+import { isDirectMapLink, resolveGoogleMapsEmbedUrl } from '../utils/google-maps-embed'
 import { animate } from 'motion'
 import eventCardImage from '../assets/event/event.jpg'
 
@@ -9,10 +10,11 @@ export function renderEventDetail(eventId: string, lang: string): string | null 
   const isLv = lang === 'lv'
   const t = (field: { en: string; lv: string }) => isLv ? field.lv : field.en
   const heroImage = ev.image ?? eventCardImage
-  const formatLabel = ev.format ? t(ev.format) : (isLv ? 'British Parliamentary' : 'British Parliamentary')
-  const mapSrc = ev.googleMapsUrl
-    ? ev.googleMapsUrl
-    : `https://maps.google.com/maps?q=${encodeURIComponent(t(ev.location))}&z=14&output=embed`
+  const locationLabel = t(ev.location)
+  const mapSrc = resolveGoogleMapsEmbedUrl(ev.googleMapsUrl, locationLabel)
+  const mapExternalHref = isDirectMapLink(ev.googleMapsUrl)
+    ? ev.googleMapsUrl!
+    : mapSrc
 
   return /* html */ `
     <section class="event-detail" id="event-detail">
@@ -50,10 +52,6 @@ export function renderEventDetail(eventId: string, lang: string): string | null 
               <span class="info-label">${isLv ? 'Vieta' : 'Location'}</span>
               <span>${t(ev.location)}</span>
             </div>
-            <div class="event-detail-info-item">
-              <span class="info-label">${isLv ? 'Formāts' : 'Format'}</span>
-              <span>${formatLabel}</span>
-            </div>
             <!-- <a href="#events" class="event-detail-register">${isLv ? 'Reģistrēties' : 'Register Now'}</a> -->
           </aside>
         </div>
@@ -65,8 +63,15 @@ export function renderEventDetail(eventId: string, lang: string): string | null 
             src="${mapSrc}"
             title="${isLv ? 'Pasākuma norises vieta kartē' : 'Event location map'}"
             loading="lazy"
+            allowfullscreen
             referrerpolicy="no-referrer-when-downgrade"
           ></iframe>
+          <a
+            class="event-detail-map-link"
+            href="${mapExternalHref}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >${isLv ? 'Atvērt Google Maps' : 'Open in Google Maps'}</a>
         </div>
       </article>
     </section>

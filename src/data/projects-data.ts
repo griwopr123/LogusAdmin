@@ -5,6 +5,7 @@ export interface ProjectItem {
   image: string
   heroImage: string
   gallery: string[]
+  sponsorLogos: string[]
   funded: boolean
   title: { en: string; lv: string }
   excerpt: { en: string; lv: string }
@@ -18,6 +19,7 @@ export const staticProjectsData: ProjectItem[] = [
     image: PROJECT_IMAGE,
     heroImage: PROJECT_IMAGE,
     gallery: [PROJECT_IMAGE],
+    sponsorLogos: [],
     funded: true,
     title: {
       en: 'Youth festival in Mārupe municipality',
@@ -47,6 +49,7 @@ export const staticProjectsData: ProjectItem[] = [
     image: PROJECT_IMAGE,
     heroImage: PROJECT_IMAGE,
     gallery: [PROJECT_IMAGE],
+    sponsorLogos: [],
     funded: false,
     title: {
       en: 'Visit to Riga Secondary School No. 98',
@@ -76,6 +79,7 @@ export const staticProjectsData: ProjectItem[] = [
     image: PROJECT_IMAGE,
     heroImage: PROJECT_IMAGE,
     gallery: [PROJECT_IMAGE],
+    sponsorLogos: [],
     funded: false,
     title: {
       en: 'School visit — Riga Secondary School No. 21',
@@ -105,6 +109,7 @@ export const staticProjectsData: ProjectItem[] = [
     image: PROJECT_IMAGE,
     heroImage: PROJECT_IMAGE,
     gallery: [PROJECT_IMAGE],
+    sponsorLogos: [],
     funded: true,
     title: {
       en: 'International youth policy LV 3.0',
@@ -134,6 +139,7 @@ export const staticProjectsData: ProjectItem[] = [
     image: PROJECT_IMAGE,
     heroImage: PROJECT_IMAGE,
     gallery: [PROJECT_IMAGE],
+    sponsorLogos: [],
     funded: true,
     title: {
       en: 'School debate league',
@@ -163,6 +169,7 @@ export const staticProjectsData: ProjectItem[] = [
     image: PROJECT_IMAGE,
     heroImage: PROJECT_IMAGE,
     gallery: [PROJECT_IMAGE],
+    sponsorLogos: [],
     funded: false,
     title: {
       en: 'Summer debate camp',
