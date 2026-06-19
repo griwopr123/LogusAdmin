@@ -14,7 +14,7 @@ import './styles/about.scss'
 import { animate, inView } from 'motion'
 import { renderEventsPage, setupEventsAnimations } from './pages/events-page'
 import type { EventItem } from './data/events-data'
-import { getEventsItems, getSponsorItems, loadSiteContent } from './services/content-store'
+import { getEventsItems, getSocialLinks, getSponsorItems, loadSiteContent } from './services/content-store'
 import { getSitePages, loadSitePages, pickLang, resolveSiteImage } from './services/site-pages-store'
 import { renderEventDetail, setupEventDetailAnimations } from './details/event-detail'
 import { renderAboutPage, setupAboutAnimations } from './pages/about-page'
@@ -394,9 +394,32 @@ function renderClubIntroSection(): string {
   `
 }
 
+const getFontAwesomeIcon = (platform: string): string => {
+  const platformLower = platform.toLowerCase()
+  const iconMap: Record<string, string> = {
+    facebook: 'fa-facebook-f',
+    instagram: 'fa-instagram',
+    twitter: 'fa-x-twitter',
+    linkedin: 'fa-linkedin-in',
+    youtube: 'fa-youtube',
+    other: 'fa-link',
+  }
+  return iconMap[platformLower] || `fa-${platformLower}`
+}
+
 const renderSharedFooter = () => {
   const footer = getSitePages().footer
   const isLv = currentLanguage === 'lv'
+  const socialLinks = getSocialLinks()
+
+  const socialLinksHtml = socialLinks.length > 0
+    ? socialLinks.map(link => 
+        `<a href="${link.url.trim()}" title="${link.platform}" aria-label="${link.platform}" target="_blank" rel="noopener noreferrer"><i class="fa-brands ${getFontAwesomeIcon(link.platform)}"></i></a>`
+      ).join('')
+    : `<a href="javascript:void(0)" title="Facebook" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="javascript:void(0)" title="Instagram" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="javascript:void(0)" title="Twitter" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="javascript:void(0)" title="LinkedIn" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>`
 
   return /* html */ `
   <footer id="contact">
@@ -405,10 +428,7 @@ const renderSharedFooter = () => {
         <h3>LOGUS Debate</h3>
         <p>${pickLang(isLv, footer.tagline)}</p>
         <div class="social-links">
-          <a href="javascript:void(0)" title="Facebook" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-          <a href="javascript:void(0)" title="Instagram" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-          <a href="javascript:void(0)" title="Twitter" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
-          <a href="javascript:void(0)" title="LinkedIn" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+          ${socialLinksHtml}
         </div>
       </div>
       <div class="footer-section">

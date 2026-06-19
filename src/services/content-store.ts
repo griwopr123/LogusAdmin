@@ -106,6 +106,12 @@ interface ApiArchiveLinkItem {
   title_lv: string
 }
 
+export interface SocialLink {
+  id: number | string
+  platform: string
+  url: string
+}
+
 const LV_MONTHS = [
   'JANVĀRIS',
   'FEBRUARIS',
@@ -130,6 +136,7 @@ let projectItems: ProjectItem[] = [...staticProjectsData]
 let documentItems: DocumentItem[] = [...staticDocumentsData]
 let archivePhotoItems: ArchivePhoto[] = [...staticArchivePhotos]
 let archiveLinkItems: ArchiveLink[] = []
+let socialLinkItems: SocialLink[] = []
 let contentSource: 'api' | 'static' = 'static'
 
 function bodyParagraphs(text: string): string[] {
@@ -384,6 +391,10 @@ export function getArchiveLinks(): ArchiveLink[] {
   return archiveLinkItems
 }
 
+export function getSocialLinks(): SocialLink[] {
+  return socialLinkItems
+}
+
 export function getContentSource(): 'api' | 'static' {
   return contentSource
 }
@@ -399,6 +410,7 @@ export async function loadSiteContent(): Promise<void> {
     documentsResult,
     archiveResult,
     archiveLinksResult,
+    socialLinksResult,
   ] = await Promise.allSettled([
     fetchApiList<ApiNewsItem>('news.php'),
     fetchApiList<ApiEventItem>('events.php'),
@@ -409,6 +421,7 @@ export async function loadSiteContent(): Promise<void> {
     fetchApiList<ApiDocumentItem>('documents.php'),
     fetchApiList<ApiArchivePhotoItem>('archive.php'),
     fetchApiList<ApiArchiveLinkItem>('archive-links.php'),
+    fetchApiList<SocialLink>('social-links.php'),
   ])
 
   let apiConnected = false
@@ -483,6 +496,14 @@ export async function loadSiteContent(): Promise<void> {
   } else {
     console.warn('[LOGUS] archive-links.php failed, archive links empty.', archiveLinksResult.reason)
     archiveLinkItems = []
+  }
+
+  if (socialLinksResult.status === 'fulfilled') {
+    socialLinkItems = socialLinksResult.value
+    apiConnected = true
+  } else {
+    console.warn('[LOGUS] social-links.php failed, social links empty.', socialLinksResult.reason)
+    socialLinkItems = []
   }
 
   contentSource = apiConnected ? 'api' : 'static'
