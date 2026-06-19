@@ -15,6 +15,7 @@ import { animate, inView } from 'motion'
 import { renderEventsPage, setupEventsAnimations } from './pages/events-page'
 import type { EventItem } from './data/events-data'
 import { getEventsItems, getSponsorItems, loadSiteContent } from './services/content-store'
+import { getSitePages, loadSitePages, pickLang, resolveSiteImage } from './services/site-pages-store'
 import { renderEventDetail, setupEventDetailAnimations } from './details/event-detail'
 import { renderAboutPage, setupAboutAnimations } from './pages/about-page'
 import { renderDonationPage, setupDonationCopy } from './pages/donation-page'
@@ -160,36 +161,62 @@ let currentLanguage = localStorage.getItem('language') || 'en'
 let isDarkMode = false
 
 const t = (key: string) => translations[currentLanguage as keyof typeof translations]?.[key as keyof typeof translations['en']] || key
-const renderDrawerSecondaryLinks = (lang: string) => {
-  const isLv = lang === 'lv'
-
-  return /* html */ `
-    <li><a class="drawer-secondary-link" href="/page/news">${isLv ? 'Jaunumi' : 'News'}</a></li>
-    <li><a class="drawer-secondary-link" href="/page/faq">${isLv ? 'BUJ' : 'FAQ'}</a></li>
-    <li><a class="drawer-secondary-link" href="/page/rules">${isLv ? 'Noteikumi' : 'Rules'}</a></li>
-    <li><a class="drawer-secondary-link" href="/page/partners">${isLv ? 'Partneri' : 'Partners'}</a></li>
-    <li><a class="drawer-secondary-link" href="/page/arhive">${isLv ? 'Arhīvs' : 'Archive'}</a></li>
-    <li><a class="drawer-secondary-link" href="/page/contacts">${isLv ? 'Kontakti' : 'Contacts'}</a></li>
-    <li><a class="drawer-secondary-link" href="/page/documents">${isLv ? 'Dokumenti' : 'Documents'}</a></li>
-  `
-}
-
-const renderDropdownSecondaryLinks = (lang: string) => {
+const renderMoreMenuLinks = (lang: string) => {
   const isLv = lang === 'lv'
 
   return /* html */ `
     <ul class="nav-more-list">
-      <li><a class="nav-dropdown-link" href="/">${isLv ? 'Sākums' : 'Home'}</a></li>
       <li><a class="nav-dropdown-link" href="/events">${isLv ? 'Pasākumi' : 'Events'}</a></li>
       <li><a class="nav-dropdown-link" href="/page/news">${isLv ? 'Jaunumi' : 'News'}</a></li>
       <li><a class="nav-dropdown-link" href="/page/faq">${isLv ? 'BUJ' : 'FAQ'}</a></li>
       <li><a class="nav-dropdown-link" href="/page/rules">${isLv ? 'Noteikumi' : 'Rules'}</a></li>
       <li><a class="nav-dropdown-link" href="/page/partners">${isLv ? 'Partneri' : 'Partners'}</a></li>
-      <li><a class="nav-dropdown-link" href="/page/projects">${isLv ? 'Projekta' : 'Project'}</a></li>
+      <li><a class="nav-dropdown-link" href="/page/projects">${isLv ? 'Projekti' : 'Projects'}</a></li>
       <li><a class="nav-dropdown-link" href="/page/arhive">${isLv ? 'Arhīvs' : 'Archive'}</a></li>
       <li><a class="nav-dropdown-link" href="/page/documents">${isLv ? 'Dokumenti' : 'Documents'}</a></li>
       <li><a class="nav-dropdown-link" href="/page/contacts">${isLv ? 'Kontakti' : 'Contacts'}</a></li>
     </ul>
+  `
+}
+
+function renderNavSearch(variant: 'bar' | 'drawer') {
+  const isDrawer = variant === 'drawer'
+  const formId = isDrawer ? 'navDrawerSearchForm' : 'navSearchForm'
+  const inputId = isDrawer ? 'navDrawerSearchInput' : 'navSearchInput'
+  const resultsId = isDrawer ? 'navDrawerSearchResults' : 'navSearchResults'
+
+  const form = /* html */ `
+    <form class="nav-search-form${isDrawer ? ' nav-search-form--drawer' : ''}" id="${formId}" role="search">
+      <label class="visually-hidden" for="${inputId}">${t('searchToggle')}</label>
+      <input
+        type="search"
+        id="${inputId}"
+        class="nav-search-input"
+        placeholder="${t('searchPlaceholder')}"
+        autocomplete="off"
+        aria-autocomplete="list"
+        aria-controls="${resultsId}"
+        aria-expanded="false"
+      >
+      <div class="nav-search-results" id="${resultsId}" role="listbox" hidden></div>
+    </form>
+  `
+
+  if (isDrawer) {
+    return /* html */ `
+      <div class="nav-drawer-search">
+        ${form}
+      </div>
+    `
+  }
+
+  return /* html */ `
+    <div class="nav-search-wrap nav-search--bar">
+      <button type="button" class="nav-search-toggle" id="navSearchToggle" aria-expanded="false" aria-label="${t('searchToggle')}">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      </button>
+      ${form}
+    </div>
   `
 }
 
@@ -203,13 +230,13 @@ function renderSiteHeader(active?: NavActive) {
   return /* html */ `
   <header>
     <nav>
+      <div class="logo" style="z-index: 1004;">
+        <a href="/" style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;color:inherit;">
+          <img src="/logo.png" alt="LOGUS Debate Logo">
+          <!-- <span>LOGUS</span> -->
+        </a>
+      </div>
       <div class="nav-left">
-        <div class="logo">
-          <a href="/" style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;color:inherit;">
-            <img src="/logo.png" alt="LOGUS Debate Logo">
-            <!-- <span>LOGUS</span> -->
-          </a>
-        </div>
         <div class="nav-more-wrap" id="navMoreWrap">
           <button type="button" class="nav-more-btn" id="navMoreBtn" aria-expanded="false" aria-haspopup="true" aria-label="${currentLanguage === 'lv' ? 'Izvēlne' : 'Menu'}">
             <span class="nav-burger" aria-hidden="true">
@@ -219,40 +246,18 @@ function renderSiteHeader(active?: NavActive) {
             </span>
           </button>
           <div class="nav-more-panel" id="navMorePanel" role="menu">
-            ${renderDropdownSecondaryLinks(currentLanguage)}
+            ${renderNavSearch('drawer')}
+            ${renderMoreMenuLinks(currentLanguage)}
           </div>
         </div>
       </div>
       <div class="nav-cluster">
         <ul class="nav-links" id="navLinks">
-          <li class="nav-drawer-only"><a href="/">${t('home')}</a></li>
-          <li class="nav-drawer-only"><a href="/events">${t('events')}</a></li>
           <li><a href="/about"${navActiveClass(active, 'about')}>${t('about')}</a></li>
           <li><a href="/team"${navActiveClass(active, 'team')}>${t('team')}</a></li>
           <li><a href="/donation"${navActiveClass(active, 'donation')}>${t('donation')}</a></li>
-          <li class="drawer-divider"></li>
-          <li class="drawer-title">${currentLanguage === 'lv' ? 'Papildus' : 'More'}</li>
-          ${renderDrawerSecondaryLinks(currentLanguage)}
         </ul>
-        <div class="nav-search-wrap">
-          <button type="button" class="nav-search-toggle" id="navSearchToggle" aria-expanded="false" aria-label="${t('searchToggle')}">
-            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-          </button>
-          <form class="nav-search-form" id="navSearchForm" role="search">
-            <label class="visually-hidden" for="navSearchInput">${t('searchToggle')}</label>
-            <input
-              type="search"
-              id="navSearchInput"
-              class="nav-search-input"
-              placeholder="${t('searchPlaceholder')}"
-              autocomplete="off"
-              aria-autocomplete="list"
-              aria-controls="navSearchResults"
-              aria-expanded="false"
-            >
-            <div class="nav-search-results" id="navSearchResults" role="listbox" hidden></div>
-          </form>
-        </div>
+        ${renderNavSearch('bar')}
       </div>
       <div class="nav-right">
         <div class="language-switcher" id="languageSwitcher">
@@ -290,6 +295,7 @@ function getEventStatus(ev: EventItem): 'open' | 'live' | 'concluded' {
 
 function renderHomeEventsSection(): string {
   const isLv = currentLanguage === 'lv'
+  const home = getSitePages().home
   const sorted = [...getEventsItems()].sort((a, b) => a.date.localeCompare(b.date))
 
   const rows = sorted.map((ev) => {
@@ -322,7 +328,7 @@ function renderHomeEventsSection(): string {
   return /* html */ `
     <section class="home-events" id="upcoming-events" aria-labelledby="home-events-heading">
       <div class="home-events-inner">
-        <h2 id="home-events-heading" class="home-events-title">${t('eventsHomeTitle')}</h2>
+        <h2 id="home-events-heading" class="home-events-title">${pickLang(isLv, home.events_home_title)}</h2>
         <div class="event-list" role="list">
           ${rows}
         </div>
@@ -367,42 +373,50 @@ function renderHomeSponsorsSection(): string {
 }
 
 function renderClubIntroSection(): string {
+  const isLv = currentLanguage === 'lv'
+  const home = getSitePages().home
+  const points = home.club_points
+    .map((point) => `<li>${pickLang(isLv, point)}</li>`)
+    .join('')
+
   return /* html */ `
     <section class="club-split" id="club-intro" aria-labelledby="club-intro-heading">
       <div class="club-split-visual" role="img" aria-label=""></div>
       <div class="club-split-content">
-        <h2 id="club-intro-heading" class="club-split-heading">${t('whatIs')}</h2>
-        <p class="club-split-lead">${t('whatIsDesc')}</p>
+        <h2 id="club-intro-heading" class="club-split-heading">${pickLang(isLv, home.club_heading)}</h2>
+        <p class="club-split-lead">${pickLang(isLv, home.club_lead)}</p>
         <ul class="club-split-list">
-          <li>${t('clubPoint1')}</li>
-          <li>${t('clubPoint2')}</li>
-          <li>${t('clubPoint3')}</li>
+          ${points}
         </ul>
-        <a href="/about" class="btn btn-club-outline">${t('clubCta')}</a>
+        <a href="/about" class="btn btn-club-outline">${pickLang(isLv, home.club_cta)}</a>
       </div>
     </section>
   `
 }
 
-const renderSharedFooter = () => /* html */ `
+const renderSharedFooter = () => {
+  const footer = getSitePages().footer
+  const isLv = currentLanguage === 'lv'
+
+  return /* html */ `
   <footer id="contact">
     <div class="footer-content">
       <div class="footer-section">
         <h3>LOGUS Debate</h3>
-        <p>${currentLanguage === 'en' ? 'Latvia\'s leading debate club dedicated to youth intellectual and personal development.' : currentLanguage === 'lv' ? 'Latvijas vadošais debašu klubs, veltīts jaunatnes intelektuālajai un personīgajai attīstībai.' : 'Ведущий дебатный клуб Латвии, посвященный интеллектуальному и личному развитию молодежи.'}</p>
+        <p>${pickLang(isLv, footer.tagline)}</p>
         <div class="social-links">
-          <a href="javascript:void(0)" title="Facebook">f</a>
-          <a href="javascript:void(0)" title="Instagram">in</a>
-          <a href="javascript:void(0)" title="Twitter">x</a>
-          <a href="javascript:void(0)" title="LinkedIn">in</a>
+          <a href="javascript:void(0)" title="Facebook" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="javascript:void(0)" title="Instagram" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="javascript:void(0)" title="Twitter" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="javascript:void(0)" title="LinkedIn" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
         </div>
       </div>
       <div class="footer-section">
         <h3>${t('contact')}</h3>
-        <p>${t('address')}</p>
-        <p>${t('email')}</p>
-        <p>${t('phone')}</p>
-        <p>${t('hours')}</p>
+        <p>${pickLang(isLv, footer.address)}</p>
+        <p>${footer.email}</p>
+        <p>${footer.phone}</p>
+        <p>${pickLang(isLv, footer.hours)}</p>
       </div>
       <div class="footer-section">
         <h3>${t('quickLinks')}</h3>
@@ -415,34 +429,39 @@ const renderSharedFooter = () => /* html */ `
       </div>
       <div class="footer-section">
         <h3>${t('information')}</h3>
-        <p>${t('registered')}</p>
-        <p>${t('programs')}</p>
+        <p>${pickLang(isLv, footer.registered)}</p>
+        <p>${pickLang(isLv, footer.programs)}</p>
       </div>
     </div>
     <div class="footer-bottom">
-      <p>${t('copyright')}</p>
+      <p>${pickLang(isLv, footer.copyright)}</p>
     </div>
   </footer>
 `
+}
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 
 function renderPage() {
+  const isLv = currentLanguage === 'lv'
+  const home = getSitePages().home
+  const heroImage = resolveSiteImage(home.hero_image)
+
   app.innerHTML = /* html */ `
   ${renderSiteHeader()}
 
   <main class="main-landing">
     <section class="hero hero--immersive" id="home">
-      <div class="hero-bg" style="background-image: url('/bg-image.jpg');" role="img" aria-label=""></div>
+      <div class="hero-bg" style="background-image: url('${heroImage}');" role="img" aria-label=""></div>
       <div class="hero-overlay" aria-hidden="true"></div>
       <div class="hero-inner">
         <div class="hero-content hero-content--left">
           <h1 class="hero-headline">
-            <span class="hero-headline-line">${t('heroLine1')}</span>
-            <span class="hero-headline-line"><span class="hero-highlight">${t('heroHighlight')}</span> ${t('heroLine2')}</span>
+            <span class="hero-headline-line">${pickLang(isLv, home.hero_line1)}</span>
+            <span class="hero-headline-line"><span class="hero-highlight">${pickLang(isLv, home.hero_highlight)}</span> ${pickLang(isLv, home.hero_line2)}</span>
           </h1>
           <div class="hero-actions">
-            <a href="/club-intro" class="btn btn-hero-primary">${t('meetUs')}</a>
+            <a href="/club-intro" class="btn btn-hero-primary">${pickLang(isLv, home.meet_us)}</a>
             <a href="/upcoming-events" class="btn btn-hero-ghost">${t('events')}</a>
           </div>
         </div>
@@ -722,8 +741,6 @@ function setupHeroComparisonSlider() {
 }
 
 function setupEventListeners() {
-  const navLinks = document.getElementById('navLinks')
-
   const existingOverlay = document.querySelector('.nav-drawer-overlay')
   if (existingOverlay) {
     existingOverlay.remove()
@@ -733,25 +750,31 @@ function setupEventListeners() {
   overlay.className = 'nav-drawer-overlay'
   document.body.appendChild(overlay)
 
-  const closeDrawer = () => {
-    navLinks?.classList.remove('active')
-    overlay.classList.remove('active')
-    document.body.classList.remove('drawer-open')
-  }
-
-
-  overlay.addEventListener('click', closeDrawer)
+  const mobileNavMq = window.matchMedia('(max-width: 768px)')
+  const isMobileNav = () => mobileNavMq.matches
 
   const navMoreBtn = document.getElementById('navMoreBtn')
   const navMoreWrap = document.getElementById('navMoreWrap')
   const navSearchToggle = document.getElementById('navSearchToggle')
   const navSearchForm = document.getElementById('navSearchForm')
   const navSearchInput = document.getElementById('navSearchInput') as HTMLInputElement | null
+  const navDrawerSearchForm = document.getElementById('navDrawerSearchForm')
+  const navDrawerSearchInput = document.getElementById('navDrawerSearchInput') as HTMLInputElement | null
 
   const closeNavMore = () => {
     navMoreWrap?.classList.remove('is-open')
     navMoreBtn?.setAttribute('aria-expanded', 'false')
+    overlay.classList.remove('active')
+    document.body.classList.remove('drawer-open')
   }
+
+  overlay.addEventListener('click', closeNavMore)
+
+  mobileNavMq.addEventListener('change', () => {
+    closeNavMore()
+    closeSearch()
+    closeDrawerSearch()
+  })
 
   const closeSearch = () => {
     navSearchForm?.classList.remove('is-visible')
@@ -759,18 +782,29 @@ function setupEventListeners() {
     navSearchToggle?.setAttribute('aria-expanded', 'false')
   }
 
+  const closeDrawerSearch = () => {
+    if (!navDrawerSearchInput || !navDrawerSearchForm) return
+    navDrawerSearchInput.value = ''
+    const resultsEl = document.getElementById('navDrawerSearchResults')
+    if (resultsEl) {
+      resultsEl.hidden = true
+      resultsEl.innerHTML = ''
+    }
+    navDrawerSearchInput.setAttribute('aria-expanded', 'false')
+  }
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      closeDrawer()
       closeNavMore()
       closeSearch()
+      closeDrawerSearch()
     }
   })
 
-  const navElements = document.querySelectorAll('.nav-links a')
-  navElements.forEach(link => {
+  document.querySelectorAll('.nav-more-panel a').forEach(link => {
     link.addEventListener('click', () => {
-      closeDrawer()
+      closeNavMore()
+      closeDrawerSearch()
     })
   })
 
@@ -791,11 +825,24 @@ function setupEventListeners() {
   navMoreBtn?.addEventListener('click', (e) => {
     e.stopPropagation()
     const next = !navMoreWrap?.classList.contains('is-open')
-    navMoreWrap?.classList.toggle('is-open', next)
-    navMoreBtn.setAttribute('aria-expanded', next ? 'true' : 'false')
+    if (next) {
+      closeSearch()
+      navMoreWrap?.classList.add('is-open')
+      navMoreBtn.setAttribute('aria-expanded', 'true')
+      if (isMobileNav()) {
+        overlay.classList.add('active')
+        document.body.classList.add('drawer-open')
+        setTimeout(() => navDrawerSearchInput?.focus(), 120)
+      }
+      return
+    }
+
+    closeNavMore()
+    closeDrawerSearch()
   })
 
   document.addEventListener('click', (e) => {
+    if (isMobileNav()) return
     if (navMoreWrap && !navMoreWrap.contains(e.target as Node)) {
       closeNavMore()
     }
@@ -804,6 +851,7 @@ function setupEventListeners() {
   navSearchToggle?.addEventListener('click', (e) => {
     e.stopPropagation()
     const open = !navSearchForm?.classList.contains('is-visible')
+    if (open) closeNavMore()
     navSearchForm?.classList.toggle('is-visible', open)
     navSearchToggle.classList.toggle('is-open', open)
     navSearchToggle.setAttribute('aria-expanded', open ? 'true' : 'false')
@@ -818,15 +866,18 @@ function setupEventListeners() {
     }
   })
 
-  setupNavSearch(navSearchForm, navSearchInput, closeSearch)
+  setupNavSearch(navSearchForm, navSearchInput, closeSearch, 'navSearchResults')
+  setupNavSearch(navDrawerSearchForm, navDrawerSearchInput, closeDrawerSearch, 'navDrawerSearchResults', closeNavMore)
 }
 
 function setupNavSearch(
   form: HTMLElement | null,
   input: HTMLInputElement | null,
   closeSearch: () => void,
+  resultsId: string,
+  onNavigate?: () => void,
 ) {
-  const resultsEl = document.getElementById('navSearchResults')
+  const resultsEl = document.getElementById(resultsId)
   if (!form || !input || !resultsEl) return
 
   let activeIndex = -1
@@ -834,6 +885,7 @@ function setupNavSearch(
 
   const goTo = (route: string) => {
     closeSearch()
+    onNavigate?.()
     input.value = ''
     hideResults()
     navigateTo(route.replace(/^#/, ''))
@@ -1037,6 +1089,7 @@ function setupScrollAnimation() {
 async function bootstrap() {
   migrateLegacyHash()
   await loadSiteContent()
+  await loadSitePages()
   invalidateSearchIndex()
   handleRoute()
 }

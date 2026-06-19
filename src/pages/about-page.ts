@@ -1,42 +1,39 @@
-import { aboutPillars, aboutStats, aboutValues } from '../data/about-data'
 import { animate, inView } from 'motion'
-
-function pick(isLv: boolean, pair: { en: string; lv: string }): string {
-  return isLv ? pair.lv : pair.en
-}
+import { getSitePages, pickLang } from '../services/site-pages-store'
 
 export function renderAboutPage(lang: string): string {
   const isLv = lang === 'lv'
+  const about = getSitePages().about
 
-  const pillars = aboutPillars
+  const pillars = about.pillars
     .map(
       (item, index) => /* html */ `
       <article class="about-pillar-card">
         <span class="about-pillar-num" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span>
-        <h3 class="about-pillar-title">${pick(isLv, item.title)}</h3>
-        <p class="about-pillar-text">${pick(isLv, item.text)}</p>
+        <h3 class="about-pillar-title">${pickLang(isLv, item.title)}</h3>
+        <p class="about-pillar-text">${pickLang(isLv, item.text)}</p>
       </article>
     `,
     )
     .join('')
 
-  const values = aboutValues
+  const values = about.values
     .map(
       (item) => /* html */ `
       <article class="about-value-card">
-        <h3 class="about-value-title">${pick(isLv, item.title)}</h3>
-        <p class="about-value-text">${pick(isLv, item.text)}</p>
+        <h3 class="about-value-title">${pickLang(isLv, item.title)}</h3>
+        <p class="about-value-text">${pickLang(isLv, item.text)}</p>
       </article>
     `,
     )
     .join('')
 
-  const stats = aboutStats
+  const stats = about.stats
     .map(
       (item) => /* html */ `
       <div class="about-stat">
         <span class="about-stat-value">${item.value}</span>
-        <span class="about-stat-label">${pick(isLv, item.label)}</span>
+        <span class="about-stat-label">${pickLang(isLv, item.label)}</span>
       </div>
     `,
     )
@@ -48,14 +45,12 @@ export function renderAboutPage(lang: string): string {
         <div class="about-hero-media" role="presentation"></div>
         <div class="about-hero-scrim" aria-hidden="true"></div>
         <div class="about-hero-inner">
-          <p class="about-hero-kicker">LOGUS Debate</p>
+          <p class="about-hero-kicker">${about.hero_kicker}</p>
           <h1 id="about-hero-title" class="about-hero-title">
-            ${isLv ? 'Par mums' : 'About us'}
+            ${pickLang(isLv, about.hero_title)}
           </h1>
           <p class="about-hero-lead">
-            ${isLv
-              ? 'Latvijas vadošā debašu vide — kur jaunieši apgūst argumentāciju, pārliecību un komandas darbu.'
-              : "Latvia's home for debate — where young people build argumentation, confidence, and teamwork."}
+            ${pickLang(isLv, about.hero_lead)}
           </p>
         </div>
       </section>
@@ -65,18 +60,10 @@ export function renderAboutPage(lang: string): string {
           <div class="about-intro-visual" role="img" aria-label=""></div>
           <div class="about-intro-copy">
             <h2 id="about-intro-heading" class="about-section-heading">
-              ${isLv ? 'Kas ir LOGUS Debate?' : 'What is LOGUS Debate?'}
+              ${pickLang(isLv, about.intro_heading)}
             </h2>
-            <p>
-              ${isLv
-                ? 'Mēs esam biedrība un debašu klubs, kas apvieno jauniešus, studentus un mentorus no Rīgas un visas Latvijas. Nodarbības notiek strukturēti — ar skaidriem mērķiem, atbalstošu atmosfēru un augstu prasību līmeni.'
-                : 'We are an association and debate club bringing together youth, students, and mentors from Riga and across Latvia. Sessions are structured — clear goals, a supportive atmosphere, and high standards.'}
-            </p>
-            <p>
-              ${isLv
-                ? 'Galvenais sacensību formāts ir British Parliamentary (BP). Papildus rīkojam treniņdebates, skolu programmas, vasaras skolas un starptautiskus sadarbības projektus.'
-                : 'Our main competitive format is British Parliamentary (BP). We also run practice debates, school programmes, summer schools, and international collaborations.'}
-            </p>
+            <p>${pickLang(isLv, about.intro_p1)}</p>
+            <p>${pickLang(isLv, about.intro_p2)}</p>
             <div class="about-intro-actions">
               <a href="/events" class="about-btn about-btn--primary">${isLv ? 'Pasākumi' : 'Events'}</a>
               <a href="/team" class="about-btn about-btn--ghost">${isLv ? 'Komanda' : 'Team'}</a>
@@ -85,29 +72,45 @@ export function renderAboutPage(lang: string): string {
         </div>
       </section>
 
+      <!--<section class="about-pillars" aria-labelledby="about-pillars-heading">
+        <div class="about-pillars-inner">
+          <h2 id="about-pillars-heading" class="about-section-heading">${isLv ? 'Ko mēs darām' : 'What we do'}</h2>
+          <div class="about-pillars-grid">${pillars}</div>
+        </div>
+      </section> -->
+
+      <!--<section class="about-values" aria-labelledby="about-values-heading">
+        <div class="about-values-inner">
+          <h2 id="about-values-heading" class="about-section-heading">${isLv ? 'Vērtības' : 'Values'}</h2>
+          <div class="about-values-grid">${values}</div>
+        </div>
+      </section>  -->
+
+      <!--<section class="about-stats-band" aria-label="${isLv ? 'Statistika' : 'Statistics'}">
+        <div class="about-stats-inner">${stats}</div>
+      </section>  -->
+
       <section class="about-location" aria-labelledby="about-location-heading">
         <div class="about-location-inner">
           <div class="about-location-copy">
             <h2 id="about-location-heading" class="about-section-heading">
-              ${isLv ? 'Kur mūs atrast' : 'Find us'}
+              ${pickLang(isLv, about.location_heading)}
             </h2>
             <p class="about-location-text">
-              ${isLv
-                ? 'Bāze Rīgā — nodarbības un turnīri notiek klātienē un tiešsaistē. Precīzu adresi un laiku norādām reģistrācijā uz konkrētu pasākumu.'
-                : 'Based in Riga — training and tournaments run in person and online. Exact venue and times are shared when you register for an event.'}
+              ${pickLang(isLv, about.location_text)}
             </p>
             <dl class="about-contact-dl">
               <div>
                 <dt>${isLv ? 'E-pasts' : 'Email'}</dt>
-                <dd><a href="mailto:info@logusdebate.lv">info@logusdebate.lv</a></dd>
+                <dd><a href="mailto:${about.email}">${about.email}</a></dd>
               </div>
               <div>
                 <dt>${isLv ? 'Tālrunis' : 'Phone'}</dt>
-                <dd><a href="tel:+37112345678">+371 12345678</a></dd>
+                <dd><a href="tel:${about.phone.replace(/\s/g, '')}">${about.phone}</a></dd>
               </div>
               <div>
                 <dt>${isLv ? 'Vieta' : 'Location'}</dt>
-                <dd>${isLv ? 'Rīga, Latvija' : 'Riga, Latvia'}</dd>
+                <dd>${pickLang(isLv, about.location)}</dd>
               </div>
             </dl>
             <a href="/page/contacts" class="about-btn about-btn--primary">
@@ -125,8 +128,6 @@ export function renderAboutPage(lang: string): string {
           </div>
         </div>
       </section>
-
-
     </article>
   `
 }

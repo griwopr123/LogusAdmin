@@ -1,0 +1,17 @@
+# Prevent caching of index.html so users always get the latest version
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Also cover the root path
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Cache hashed assets (JS/CSS) for 1 year — they have unique hashes
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

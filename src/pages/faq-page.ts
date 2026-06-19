@@ -1,15 +1,16 @@
-import { faqData, FAQ_EMAIL } from '../data/faq-data'
 import { inView, animate } from 'motion'
+import { getSitePages, pickLang } from '../services/site-pages-store'
 
 function pick(isLv: boolean, pair: { en: string; lv: string }): string {
-  return isLv ? pair.lv : pair.en
+  return pickLang(isLv, pair)
 }
 
 export function renderFaqPage(lang: string): string {
   const isLv = lang === 'lv'
+  const faq = getSitePages().faq
   const subject = encodeURIComponent(isLv ? 'Jautājums (BUJ)' : 'Question (FAQ)')
 
-  const items = faqData
+  const items = faq.items
     .map((item) => /* html */ `
       <div class="faq-item" id="faq-${item.id}">
         <button
@@ -37,12 +38,8 @@ export function renderFaqPage(lang: string): string {
 
   return /* html */ `
     <div class="faq-page" id="faq-page">
-      <h1 class="faq-page-title">${isLv ? 'BUJ' : 'FAQ'}</h1>
-      <p class="faq-page-subtitle">
-        ${isLv
-          ? 'Atbildes uz biežāk uzdotajiem jautājumiem par dalību, treniņiem un pasākumiem.'
-          : 'Answers to common questions about membership, training, and events.'}
-      </p>
+      <h1 class="faq-page-title">${pick(isLv, faq.page_title)}</h1>
+      <p class="faq-page-subtitle">${pick(isLv, faq.page_subtitle)}</p>
 
       <div class="faq-list">
         ${items}
@@ -50,12 +47,10 @@ export function renderFaqPage(lang: string): string {
 
       <div class="faq-write" aria-labelledby="faq-write-heading">
         <h2 id="faq-write-heading" class="faq-write-title">
-          ${isLv ? 'Nav atbildes?' : 'Didn\'t find an answer?'}
+          ${pick(isLv, faq.write_title)}
         </h2>
         <p class="faq-write-lead">
-          ${isLv
-            ? 'Uzraksti mums — atbildēsim uz e-pastu 1–2 darba dienu laikā.'
-            : 'Write to us — we reply by email within 1–2 business days.'}
+          ${pick(isLv, faq.write_lead)}
         </p>
 
         <form class="faq-form" id="faqEmailForm" novalidate>
@@ -85,8 +80,8 @@ export function renderFaqPage(lang: string): string {
             <button type="submit" class="faq-submit-btn">
               ${isLv ? 'Sūtīt e-pastu' : 'Send email'}
             </button>
-            <a class="faq-mail-link" href="mailto:${FAQ_EMAIL}?subject=${subject}">
-              ${FAQ_EMAIL}
+            <a class="faq-mail-link" href="mailto:${faq.email}?subject=${subject}">
+              ${faq.email}
             </a>
           </div>
         </form>
@@ -100,6 +95,7 @@ export function setupFaqForm(lang = localStorage.getItem('language') || 'en'): v
   if (!form) return
 
   const isLv = lang === 'lv'
+  const faqEmail = getSitePages().faq.email
 
   form.addEventListener('submit', (e) => {
     e.preventDefault()
@@ -119,7 +115,7 @@ export function setupFaqForm(lang = localStorage.getItem('language') || 'en'): v
         ? `Atbilde uz: ${from}\n\n${message}`
         : `Reply to: ${from}\n\n${message}`
     }
-    const mailto = `mailto:${FAQ_EMAIL}?subject=${subject}&body=${encodeURIComponent(body)}`
+    const mailto = `mailto:${faqEmail}?subject=${subject}&body=${encodeURIComponent(body)}`
     window.location.href = mailto
   })
 }

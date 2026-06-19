@@ -18,6 +18,14 @@ export interface ArchivePhoto {
   photoDate: string
 }
 
+export interface ArchiveLink {
+  id: number | string
+  url: string
+  date: string
+  title_en: string
+  title_lv: string
+}
+
 export const archiveTabs: ArchiveTab[] = [
   {
     id: 'history',

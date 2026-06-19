@@ -6,8 +6,7 @@ import {
   getProjectItems,
   getTeamMembers,
 } from '../services/content-store'
-import { faqData } from '../data/faq-data'
-import { rulesData } from '../data/rules-data'
+import { getSitePages, pickLang } from '../services/site-pages-store'
 import { secondaryPages } from '../pages/secondary-pages'
 
 export type SearchResultKind = 'page' | 'event' | 'person' | 'section' | 'news'
@@ -153,9 +152,9 @@ function buildIndex(lang: string): SearchIndexEntry[] {
     })
   }
 
-  for (const item of faqData) {
-    const q = isLv ? item.question.lv : item.question.en
-    const a = isLv ? item.answer.lv : item.answer.en
+  for (const item of getSitePages().faq.items) {
+    const q = pickLang(isLv, item.question)
+    const a = pickLang(isLv, item.answer)
     entries.push({
       id: `faq-${item.id}`,
       title: q,
@@ -166,8 +165,8 @@ function buildIndex(lang: string): SearchIndexEntry[] {
     })
   }
 
-  rulesData.forEach((group, groupIndex) => {
-    const main = isLv ? group.text.lv : group.text.en
+  getSitePages().rules.groups.forEach((group, groupIndex) => {
+    const main = pickLang(isLv, group.text)
     const num = groupIndex + 1
     entries.push({
       id: `rules-${num}`,
@@ -178,7 +177,7 @@ function buildIndex(lang: string): SearchIndexEntry[] {
       terms: [main, String(num), 'rules', 'noteikumi'],
     })
     group.items.forEach((item, subIndex) => {
-      const text = isLv ? item.text.lv : item.text.en
+      const text = pickLang(isLv, item.text)
       entries.push({
         id: `rules-${num}-${subIndex + 1}`,
         title: `${num}.${subIndex + 1} ${text.slice(0, 64)}${text.length > 64 ? '…' : ''}`,

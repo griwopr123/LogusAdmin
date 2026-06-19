@@ -1,11 +1,7 @@
-import { archiveTabs } from '../data/archive-data'
 import type { ArchivePhoto } from '../data/archive-data'
-import { getArchivePhotos } from '../services/content-store'
+import { getArchivePhotos, getArchiveLinks } from '../services/content-store'
+import { getSitePages, pickLang } from '../services/site-pages-store'
 import { animate, inView } from 'motion'
-
-function pick(isLv: boolean, pair: { en: string; lv: string }): string {
-  return isLv ? pair.lv : pair.en
-}
 
 function renderParagraphs(paragraphs: string[]): string {
   return paragraphs.map((p) => `<p>${p}</p>`).join('')
@@ -74,14 +70,48 @@ function renderArchiveFilters(photos: ArchivePhoto[], isLv: boolean): string {
   `
 }
 
+function renderArchiveLinks(isLv: boolean): string {
+  const links = getArchiveLinks()
+  if (links.length === 0) return ''
+
+  const linkItems = links
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .map((link) => {
+      const dateLabel = formatArchiveDate(link.date, isLv)
+      const title = isLv ? link.title_lv : link.title_en
+      return /* html */ `
+      <a href="${link.url}" class="archive-link-item" target="_blank" rel="noopener noreferrer">
+        <span class="archive-link-icon" aria-hidden="true">🔗</span>
+        <div class="archive-link-content">
+          <div class="archive-link-title">${title}</div>
+          <time class="archive-link-date" datetime="${link.date}">${dateLabel}</time>
+        </div>
+      </a>
+    `
+    })
+    .join('')
+
+  return /* html */ `
+    <div class="archive-links-section" aria-labelledby="archive-links-heading">
+      <h3 id="archive-links-heading" class="archive-links-title">
+        ${isLv ? 'Ārējās atsauces' : 'External links'}
+      </h3>
+      <div class="archive-links-list">
+        ${linkItems}
+      </div>
+    </div>
+  `
+}
+
 function renderMilestonePanel(tabId: string, sectionId: string, isLv: boolean): string {
+  const archiveTabs = getSitePages().archive_tabs
   const tab = archiveTabs.find((t) => t.id === tabId) ?? archiveTabs[0]
   const section = tab.sections.find((s) => s.id === sectionId) ?? tab.sections[0]
 
   return /* html */ `
     <div class="archive-milestones-panel" data-tab-panel="${tab.id}">
       <h2 class="archive-milestones-title">
-        ${pick(isLv, tab.label)}
+        ${pickLang(isLv, tab.label)}
       </h2>
       <div class="archive-milestones-layout">
         <nav class="archive-sidebar" aria-label="${isLv ? 'Sadaļas' : 'Sections'}">
@@ -94,7 +124,7 @@ function renderMilestonePanel(tabId: string, sectionId: string, isLv: boolean): 
                 class="archive-sidebar-link${active}"
                 data-archive-section="${item.id}"
                 data-archive-tab="${tab.id}"
-              >${pick(isLv, item.title)}</button>
+              >${pickLang(isLv, item.title)}</button>
             `
             })
             .join('')}
@@ -109,6 +139,7 @@ function renderMilestonePanel(tabId: string, sectionId: string, isLv: boolean): 
 
 export function renderArchivePage(lang: string): string {
   const isLv = lang === 'lv'
+  const { archive, archive_tabs: archiveTabs } = getSitePages()
 
   const tabButtons = archiveTabs
     .map((tab, index) => {
@@ -118,7 +149,7 @@ export function renderArchivePage(lang: string): string {
           type="button"
           class="archive-hero-tab${active}"
           data-archive-tab="${tab.id}"
-        >${pick(isLv, tab.label)}</button>
+        >${pickLang(isLv, tab.label)}</button>
       `
     })
     .join('')
@@ -126,13 +157,13 @@ export function renderArchivePage(lang: string): string {
   const tabPanels = archiveTabs
     .map((tab, index) => {
       const hidden = index === 0 ? '' : ' hidden'
-      const intro = pick(isLv, tab.intro)
+      const intro = pickLang(isLv, tab.intro)
       const firstSection = tab.sections[0]
 
       if (!firstSection) {
         return /* html */ `
             <div class="archive-milestones-panel archive-milestones-panel--simple" data-tab-panel="${tab.id}">
-              <h2 class="archive-milestones-title">${pick(isLv, tab.label)}</h2>
+              <h2 class="archive-milestones-title">${pickLang(isLv, tab.label)}</h2>
               <div class="archive-content archive-content--standalone">
                 <p class="archive-tab-intro">${intro}</p>
               </div>
@@ -160,18 +191,16 @@ export function renderArchivePage(lang: string): string {
           const dateLabel = formatArchiveDate(photo.photoDate, isLv)
 
           return /* html */ `
-      <figure class="archive-photo" data-archive-year="${year}" data-archive-month="${month}" data-archive-date="${photo.photoDate}">
-        <img src="${photo.src}" alt="${dateLabel}" loading="lazy" decoding="async">
-        <figcaption class="archive-photo-date">
-          <time datetime="${photo.photoDate}">${dateLabel}</time>
-        </figcaption>
-      </figure>
+      <a href="${photo.src}" class="archive-photo" target="_blank" rel="noopener noreferrer" data-archive-year="${year}" data-archive-month="${month}" data-archive-date="${photo.photoDate}">
+        <span class="archive-photo-link-icon" aria-hidden="true">🔗</span>
+        <time class="archive-photo-date" datetime="${photo.photoDate}">${dateLabel}</time>
+      </a>
     `
         })
         .join('')
     : /* html */ `
       <p class="archive-gallery-empty">
-        ${isLv ? 'Fotogrāfijas drīzumā tiks pievienotas.' : 'Photographs will be added soon.'}
+        ${pickLang(isLv, archive.photos_empty)}
       </p>
     `
 
@@ -182,36 +211,30 @@ export function renderArchivePage(lang: string): string {
         <div class="archive-hero-scrim" aria-hidden="true"></div>
         <div class="archive-hero-inner">
           <h1 id="archive-hero-title" class="archive-hero-title">
-            ${isLv ? 'Arhīvs' : 'Archive'}
+            ${pickLang(isLv, archive.hero_title)}
           </h1>
           <p class="archive-hero-intro">
-            ${isLv
-              ? 'LOGUS Debate vēsture, gadagrāmatas un apkārtraksti — stūrakmeņi, stāsti un fotogrāfijas no kopienas gaitas.'
-              : 'LOGUS Debate history, yearbooks, and newsletters — milestones, stories, and photographs from our journey.'}
+            ${pickLang(isLv, archive.hero_intro)}
           </p>
-        </div>
-      </section>
-
-      <section class="archive-body">
-        <div class="archive-body-inner">
-          ${tabPanels}
+          <!--<div class="archive-hero-tabs" role="tablist">
+            ${tabButtons}
+          </div>-->
         </div>
       </section>
 
       <section class="archive-gallery" aria-labelledby="archive-gallery-heading">
         <div class="archive-gallery-inner">
           <h2 id="archive-gallery-heading" class="archive-gallery-title">
-            ${isLv ? 'Arhīva fotogrāfijas' : 'Archive photographs'}
+            ${pickLang(isLv, archive.gallery_title)}
           </h2>
           <p class="archive-gallery-lead">
-            ${isLv
-              ? 'Ieskats turnīros, treniņos un kopienas pasākumos — filtrējiet pēc gada un mēneša.'
-              : 'A glimpse of tournaments, training, and community events — filter by year and month.'}
+            ${pickLang(isLv, archive.gallery_lead)}
           </p>
           ${filters}
           <div class="archive-photo-grid" data-archive-photo-grid>
             ${photos}
           </div>
+          ${renderArchiveLinks(isLv)}
         </div>
       </section>
     </article>
@@ -219,6 +242,7 @@ export function renderArchivePage(lang: string): string {
 }
 
 function getArchiveContentHtml(tabId: string, sectionId: string, isLv: boolean): string {
+  const archiveTabs = getSitePages().archive_tabs
   const tab = archiveTabs.find((t) => t.id === tabId)
   if (!tab) return ''
   const section = tab.sections.find((s) => s.id === sectionId)

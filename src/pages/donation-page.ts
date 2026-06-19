@@ -1,11 +1,4 @@
-/** Aizvietojiet ar saviem rekvizītiem / Replace with your real bank details */
-const BANK_DETAILS = {
-  recipient: 'Biedrība "LOGUS Debate"',
-  iban: 'LV00HABA0000000000000',
-  bankLv: 'Swedbank AS',
-  bankEn: 'Swedbank AS',
-  bic: 'HABALV22',
-}
+import { getSitePages, pickLang } from '../services/site-pages-store'
 
 function copyButton(isLv: boolean, targetId: string, ariaLabel: string, stripSpaces = false): string {
   return /* html */ `
@@ -56,6 +49,18 @@ export function setupDonationCopy(): void {
 
 export function renderDonationPage(lang: string): string {
   const isLv = lang === 'lv'
+  const donation = getSitePages().donation
+
+  const impactItems = donation.impact
+    .map(
+      (item) => /* html */ `
+      <li class="donation-impact-item">
+        <span class="donation-impact-value">${item.value}</span>
+        <span class="donation-impact-label">${pickLang(isLv, item.label)}</span>
+      </li>
+    `,
+    )
+    .join('')
 
   return /* html */ `
     <section class="donation-page donation-page--dark" id="donation">
@@ -63,64 +68,57 @@ export function renderDonationPage(lang: string): string {
         <div class="donation-hero-media" role="presentation"></div>
         <div class="donation-hero-scrim" aria-hidden="true"></div>
         <div class="donation-hero-inner">
-          <p class="donation-kicker">${isLv ? 'Ziedojums' : 'Donate'}</p>
+          <p class="donation-kicker">${pickLang(isLv, donation.kicker)}</p>
           <h1 id="donation-heading" class="donation-heading">
-            ${isLv ? 'Atbalsti debašu izaugsmi Latvijā' : 'Support debate in Latvia'}
+            ${pickLang(isLv, donation.heading)}
           </h1>
           <p class="donation-subtitle">
-            ${isLv
-              ? 'Tavs ieguldījums palīdz rīkot turnīrus, nodrošināt treniņus un atvērt debašu vidi jauniešiem visā valstī.'
-              : 'Your contribution helps run tournaments, training, and open debate to young people across the country.'}
+            ${pickLang(isLv, donation.subtitle)}
           </p>
         </div>
       </header>
 
       <div class="donation-page-body">
         <p class="donation-note">
-          ${isLv
-            ? 'Maksājumu ar karti nepiedāvājam — ziedojumu var nosūtīt tikai ar bankas pārskaitījumu uz zemāk norādīto kontu.'
-            : 'We do not accept card payments — please use a bank transfer to the account below.'}
+          ${pickLang(isLv, donation.note)}
         </p>
 
         <article class="donation-bank-card">
-          <h2 class="donation-bank-title">${isLv ? 'Bankas rekvizīti' : 'Bank details'}</h2>
+          <h2 class="donation-bank-title">${pickLang(isLv, donation.bank_title)}</h2>
 
           <dl class="donation-bank-rows">
             <div class="donation-bank-row">
               <dt>${isLv ? 'Saņēmējs' : 'Recipient'}</dt>
               <dd class="donation-copyable">
-                ${copyableValue('donation-recipient-value', BANK_DETAILS.recipient)}
+                ${copyableValue('donation-recipient-value', donation.recipient)}
                 ${copyButton(isLv, 'donation-recipient-value', isLv ? 'Kopēt saņēmēju' : 'Copy recipient')}
               </dd>
             </div>
             <div class="donation-bank-row donation-bank-row--iban">
               <dt>IBAN</dt>
               <dd class="donation-copyable">
-                ${copyableValue('donation-iban-value', BANK_DETAILS.iban, 'donation-mono')}
+                ${copyableValue('donation-iban-value', donation.iban, 'donation-mono')}
                 ${copyButton(isLv, 'donation-iban-value', isLv ? 'Kopēt IBAN' : 'Copy IBAN', true)}
               </dd>
             </div>
             <div class="donation-bank-row">
               <dt>${isLv ? 'Banka' : 'Bank'}</dt>
               <dd class="donation-copyable">
-                ${copyableValue('donation-bank-value', isLv ? BANK_DETAILS.bankLv : BANK_DETAILS.bankEn)}
+                ${copyableValue('donation-bank-value', pickLang(isLv, donation.bank))}
                 ${copyButton(isLv, 'donation-bank-value', isLv ? 'Kopēt banku' : 'Copy bank')}
               </dd>
             </div>
             <div class="donation-bank-row">
               <dt>BIC / SWIFT</dt>
               <dd class="donation-copyable">
-                ${copyableValue('donation-bic-value', BANK_DETAILS.bic, 'donation-mono')}
+                ${copyableValue('donation-bic-value', donation.bic, 'donation-mono')}
                 ${copyButton(isLv, 'donation-bic-value', isLv ? 'Kopēt BIC' : 'Copy BIC')}
               </dd>
             </div>
             <div class="donation-bank-row">
               <dt>${isLv ? 'Maksājuma mērķis' : 'Payment reference'}</dt>
               <dd class="donation-copyable">
-                ${copyableValue(
-                  'donation-reference-value',
-                  isLv ? 'Ziedojums / Atbalsts jauniešu debatēm' : 'Donation / Support youth debate',
-                )}
+                ${copyableValue('donation-reference-value', pickLang(isLv, donation.reference))}
                 ${copyButton(isLv, 'donation-reference-value', isLv ? 'Kopēt mērķi' : 'Copy reference')}
               </dd>
             </div>
@@ -130,7 +128,7 @@ export function renderDonationPage(lang: string): string {
             ${isLv
               ? 'Pēc pārskaitījuma, ja vēlaties, nosūtiet apliecinājumu uz'
               : 'After transferring, you may send confirmation to'}
-            <a class="donation-mail" href="mailto:info@logusdebate.lv">info@logusdebate.lv</a>
+            <a class="donation-mail" href="mailto:${donation.confirm_email}">${donation.confirm_email}</a>
           </p>
         </article>
       </div>
@@ -140,22 +138,7 @@ export function renderDonationPage(lang: string): string {
           ${isLv ? 'Ietekmes rādītāji' : 'Impact at a glance'}
         </h2>
         <ul class="donation-impact-grid">
-          <li class="donation-impact-item">
-            <span class="donation-impact-value">1,247</span>
-            <span class="donation-impact-label">${isLv ? 'ATBALSTĪTĀJI' : 'SUPPORTERS'}</span>
-          </li>
-          <li class="donation-impact-item">
-            <span class="donation-impact-value">342</span>
-            <span class="donation-impact-label">${isLv ? 'FINANSĒTĀS DEBATES' : 'DEBATES FUNDED'}</span>
-          </li>
-          <li class="donation-impact-item">
-            <span class="donation-impact-value">89</span>
-            <span class="donation-impact-label">${isLv ? 'PASĀKUMI' : 'EVENTS HOSTED'}</span>
-          </li>
-          <li class="donation-impact-item">
-            <span class="donation-impact-value">16</span>
-            <span class="donation-impact-label">${isLv ? 'SKOLAS' : 'SCHOOLS REACHED'}</span>
-          </li>
+          ${impactItems}
         </ul>
       </section>
     </section>

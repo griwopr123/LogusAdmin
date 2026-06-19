@@ -1,13 +1,10 @@
-import { rulesData } from '../data/rules-data'
-
-function pick(isLv: boolean, pair: { en: string; lv: string }): string {
-  return isLv ? pair.lv : pair.en
-}
+import { getSitePages, pickLang } from '../services/site-pages-store'
 
 export function renderRulesPage(lang: string): string {
   const isLv = lang === 'lv'
+  const rules = getSitePages().rules
 
-  const groups = rulesData
+  const groups = rules.groups
     .map((group, groupIndex) => {
       const num = groupIndex + 1
       const subs = group.items
@@ -15,7 +12,7 @@ export function renderRulesPage(lang: string): string {
           (item, subIndex) => /* html */ `
           <li class="rules-subitem">
             <span class="rules-num rules-num--sub">${num}.${subIndex + 1}</span>
-            <p class="rules-text">${pick(isLv, item.text)}</p>
+            <p class="rules-text">${pickLang(isLv, item.text)}</p>
           </li>
         `,
         )
@@ -25,7 +22,7 @@ export function renderRulesPage(lang: string): string {
         <li class="rules-group">
           <div class="rules-item rules-item--main">
             <span class="rules-num">${num}.</span>
-            <p class="rules-text rules-text--main">${pick(isLv, group.text)}</p>
+            <p class="rules-text rules-text--main">${pickLang(isLv, group.text)}</p>
           </div>
           <ol class="rules-sublist">
             ${subs}
@@ -37,7 +34,7 @@ export function renderRulesPage(lang: string): string {
 
   return /* html */ `
     <div class="rules-page" id="rules-page">
-      <h1 class="rules-page-title">${isLv ? 'Debašu noteikumi' : 'Debate rules'}</h1>
+      <h1 class="rules-page-title">${pickLang(isLv, rules.page_title)}</h1>
       <ol class="rules-list">
         ${groups}
       </ol>

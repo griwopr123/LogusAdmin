@@ -5,7 +5,7 @@ import type { SponsorItem } from '../data/sponsors-data'
 import { staticDocumentsData, type DocumentItem } from '../data/documents-data'
 import { staticProjectsData, type ProjectItem } from '../data/projects-data'
 import { staticTeamMembers, type TeamMember } from '../data/team-data'
-import { archivePhotos as staticArchivePhotos, type ArchivePhoto } from '../data/archive-data'
+import { archivePhotos as staticArchivePhotos, type ArchivePhoto, type ArchiveLink } from '../data/archive-data'
 import { fetchApiList, mediaUrl } from '../utils/api'
 
 interface ApiNewsItem {
@@ -98,6 +98,14 @@ interface ApiDocumentItem {
   content_lv: string
 }
 
+interface ApiArchiveLinkItem {
+  id: number | string
+  url: string
+  date: string
+  title_en: string
+  title_lv: string
+}
+
 const LV_MONTHS = [
   'JANVĀRIS',
   'FEBRUARIS',
@@ -121,6 +129,7 @@ let partnerItems: PartnerItem[] = [...staticPartnersData]
 let projectItems: ProjectItem[] = [...staticProjectsData]
 let documentItems: DocumentItem[] = [...staticDocumentsData]
 let archivePhotoItems: ArchivePhoto[] = [...staticArchivePhotos]
+let archiveLinkItems: ArchiveLink[] = []
 let contentSource: 'api' | 'static' = 'static'
 
 function bodyParagraphs(text: string): string[] {
@@ -319,6 +328,16 @@ function mapArchivePhoto(raw: ApiArchivePhotoItem): ArchivePhoto {
   }
 }
 
+function mapArchiveLink(raw: ApiArchiveLinkItem): ArchiveLink {
+  return {
+    id: raw.id,
+    url: raw.url.trim(),
+    date: raw.date,
+    title_en: raw.title_en,
+    title_lv: raw.title_lv,
+  }
+}
+
 function mapPartnerItem(raw: ApiPartnerItem): PartnerItem {
   return {
     id: String(raw.id),
@@ -361,6 +380,10 @@ export function getArchivePhotos(): ArchivePhoto[] {
   return archivePhotoItems
 }
 
+export function getArchiveLinks(): ArchiveLink[] {
+  return archiveLinkItems
+}
+
 export function getContentSource(): 'api' | 'static' {
   return contentSource
 }
@@ -375,6 +398,7 @@ export async function loadSiteContent(): Promise<void> {
     projectsResult,
     documentsResult,
     archiveResult,
+    archiveLinksResult,
   ] = await Promise.allSettled([
     fetchApiList<ApiNewsItem>('news.php'),
     fetchApiList<ApiEventItem>('events.php'),
@@ -384,6 +408,7 @@ export async function loadSiteContent(): Promise<void> {
     fetchApiList<ApiProjectItem>('projects.php'),
     fetchApiList<ApiDocumentItem>('documents.php'),
     fetchApiList<ApiArchivePhotoItem>('archive.php'),
+    fetchApiList<ApiArchiveLinkItem>('archive-links.php'),
   ])
 
   let apiConnected = false
@@ -450,6 +475,14 @@ export async function loadSiteContent(): Promise<void> {
   } else {
     console.warn('[LOGUS] archive.php failed, using static archive photos.', archiveResult.reason)
     archivePhotoItems = [...staticArchivePhotos]
+  }
+
+  if (archiveLinksResult.status === 'fulfilled') {
+    archiveLinkItems = archiveLinksResult.value.map(mapArchiveLink)
+    apiConnected = true
+  } else {
+    console.warn('[LOGUS] archive-links.php failed, archive links empty.', archiveLinksResult.reason)
+    archiveLinkItems = []
   }
 
   contentSource = apiConnected ? 'api' : 'static'
