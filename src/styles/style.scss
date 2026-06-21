@@ -1295,7 +1295,7 @@ main {
 
 /* Sections */
 section {
-  padding: 5rem 2rem;
+  padding: 5rem 2rem !important;
   max-width: 100%;
   transition: var(--transition);
 
@@ -1664,6 +1664,8 @@ body.dark-mode .footer-section a:hover {
 
 @media (max-width: 768px) {
   header {
+    backdrop-filter: none;
+    background-color: #000000;
     border-bottom-width: 1px;
     --mobile-nav-toolbar-height: calc(3.25rem + env(safe-area-inset-top));
   }
@@ -1681,7 +1683,7 @@ body.dark-mode .footer-section a:hover {
       left: 0;
       right: 0;
       height: var(--mobile-nav-toolbar-height);
-      background: rgba(0, 0, 0, 0.98);
+      background: #000000;
       z-index: 1003;
       pointer-events: none;
     }
@@ -1739,7 +1741,7 @@ body.dark-mode .footer-section a:hover {
     margin-top: 0.45rem;
     position: relative;
     z-index: 1004;
-    background: rgba(0, 0, 0, 0.95);
+    background: #000000;
   }
 
   .nav-search--bar {
@@ -1776,12 +1778,13 @@ body.dark-mode .footer-section a:hover {
       font-size: 0.68rem;
       letter-spacing: 0.05em;
       white-space: nowrap;
+      color: #ffffff;
     }
   }
 
   .nav-drawer-overlay {
     top: var(--mobile-nav-toolbar-height);
-    z-index: 1001;
+    z-index: 1005;
   }
 
   .nav-drawer-overlay.active {
@@ -1794,9 +1797,9 @@ body.dark-mode .footer-section a:hover {
     right: auto;
     height: calc(100dvh - var(--mobile-nav-toolbar-height));
     width: min(88vw, 300px);
-    padding-top: 0.75rem;
+    padding-top: 0.9rem;
     padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
-    z-index: 1002;
+    z-index: 1006;
     transform: translateX(-100%);
   }
 
@@ -1806,16 +1809,37 @@ body.dark-mode .footer-section a:hover {
 
   .nav-drawer-search {
     display: block;
-    padding: 0 1rem 0.85rem;
-    border-bottom: 1px solid #2a2a2a;
-    margin-bottom: 0.35rem;
+    padding: 4rem 0.85rem 0.95rem;
+    margin: 0 0.75rem 0.55rem;
+    border-radius: 8px;
+  }
+
+  .nav-search-form--drawer {
+    display: block;
+    width: 100%;
   }
 
   .nav-search-form--drawer .nav-search-input {
     width: 100%;
     max-width: none;
-    font-size: 1rem;
-    padding: 0.55rem 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid #3a3a3a;
+    background: #111111;
+    color: #ffffff;
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+
+    &::placeholder {
+      color: #9a9a9a;
+    }
+
+    &:focus {
+      border-color: #d03a48;
+      outline: 2px solid rgba(208, 58, 72, 0.38);
+      outline-offset: 0;
+    }
   }
 
   .nav-search-form--drawer .nav-search-results {
@@ -1827,6 +1851,7 @@ body.dark-mode .footer-section a:hover {
     max-height: min(42vh, 280px);
     box-shadow: none;
     border: 1px solid #2a2a2a;
+    background: #0a0a0a;
   }
 
   .nav-dropdown-link {
@@ -1867,7 +1892,7 @@ body.dark-mode .footer-section a:hover {
 
   main,
   .page-main {
-    margin-top: calc(6.25rem + env(safe-area-inset-top));
+    margin-top: calc(7.25rem + env(safe-area-inset-top)) !important;
   }
 }
 
