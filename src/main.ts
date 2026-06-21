@@ -852,7 +852,6 @@ function setupEventListeners() {
       if (isMobileNav()) {
         overlay.classList.add('active')
         document.body.classList.add('drawer-open')
-        setTimeout(() => navDrawerSearchInput?.focus(), 120)
       }
       return
     }
