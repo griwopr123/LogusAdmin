@@ -10,15 +10,22 @@ export function renderDocumentsPage(lang: string): string {
 
   const cards = getDocumentItems()
     .map(
-      (doc) => /* html */ `
+      (doc) => {
+        const hasUrl = Boolean(doc.documentUrl)
+        return /* html */ `
       <article class="docs-card" data-docs-id="${doc.id}">
         <h2 class="docs-card-title">${pick(isLv, doc.title)}</h2>
         <p class="docs-card-excerpt">${pick(isLv, doc.excerpt)}</p>
-        <a href="/document/${doc.id}" class="docs-card-btn">
-          ${isLv ? 'Lasīt dokumentu' : 'Read document'}
-        </a>
+        ${hasUrl
+          ? `<a href="${doc.documentUrl}" class="docs-card-btn" target="_blank" rel="noopener noreferrer">
+              ${isLv ? 'Atvērt dokumentu' : 'Open document'}
+            </a>`
+          : `<span class="docs-card-btn" aria-disabled="true">
+              ${isLv ? 'Saite nav pieejama' : 'Link unavailable'}
+            </span>`}
       </article>
-    `,
+    `
+      },
     )
     .join('')
 

@@ -24,7 +24,6 @@ import { renderSecondaryPage } from './pages/secondary-pages'
 import { renderNewsDetail, setupNewsDetailAnimations } from './details/news-detail'
 import { setupNewsAnimations } from './pages/news-page'
 import { setupFaqForm, setupFaqAccordion, setupFaqAnimations } from './pages/faq-page'
-import { renderDocumentDetail, setupDocumentDetailAnimations } from './details/document-detail'
 import { renderProjectDetail, setupProjectDetailAnimations, setupProjectCarousel } from './details/project-detail'
 import { setupDocumentsAnimations } from './pages/documents-page'
 import { setupProjectsAnimations } from './pages/projects-page'
@@ -603,22 +602,6 @@ function renderSecondaryView(slug: string) {
   }
 }
 
-function renderDocumentDetailView(docId: string) {
-  const detail = renderDocumentDetail(docId, currentLanguage)
-  if (!detail) { navigateTo('page/documents'); return }
-
-  app.innerHTML = /* html */ `
-  ${renderSiteHeader()}
-  <main class="page-main">
-    ${detail}
-  </main>
-  ${renderSharedFooter()}
-  `
-
-  setupEventListeners()
-  setupDocumentDetailAnimations()
-}
-
 function renderNewsDetailView(newsId: string) {
   const detail = renderNewsDetail(newsId, currentLanguage)
   if (!detail) { navigateTo('page/news'); return }
@@ -679,9 +662,6 @@ function handleRoute() {
   } else if (route.startsWith('news/')) {
     const newsId = route.split('/')[1]
     renderNewsDetailView(newsId)
-  } else if (route.startsWith('document/')) {
-    const docId = route.split('/')[1]
-    renderDocumentDetailView(docId)
   } else if (route.startsWith('event/')) {
     const eventId = route.split('/')[1]
     renderEventView(eventId)

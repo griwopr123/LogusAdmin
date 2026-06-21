@@ -89,13 +89,17 @@ interface ApiDocumentItem {
   title_lv: string
   excerpt_en: string
   excerpt_lv: string
-  place_en: string
-  place_lv: string
-  issue_date: string
-  section_title_en: string
-  section_title_lv: string
-  content_en: string
-  content_lv: string
+  place_en?: string
+  place_lv?: string
+  issue_date?: string
+  section_title_en?: string
+  section_title_lv?: string
+  content_en?: string
+  content_lv?: string
+  source_type?: 'link' | 'upload'
+  external_url?: string
+  file_path?: string
+  document_url?: string
 }
 
 interface ApiArchiveLinkItem {
@@ -252,19 +256,27 @@ function mapTeamMember(raw: ApiTeamItem): TeamMember {
 
 function mapDocumentItem(raw: ApiDocumentItem): DocumentItem {
   const category = raw.category === 'reports' ? 'reports' : 'statutes'
+  const sourceType = raw.source_type === 'upload' ? 'upload' : 'link'
+
+  const rawUrl = (raw.document_url || (sourceType === 'upload' ? raw.file_path : raw.external_url) || '').trim()
+  const documentUrl = rawUrl
+    ? (rawUrl.startsWith('http://') || rawUrl.startsWith('https://') ? rawUrl : mediaUrl(rawUrl))
+    : ''
 
   return {
     id: String(raw.id),
     category,
     title: { en: raw.title_en, lv: raw.title_lv },
     excerpt: { en: raw.excerpt_en, lv: raw.excerpt_lv },
-    place: { en: raw.place_en, lv: raw.place_lv },
-    issueDate: raw.issue_date,
-    sectionTitle: { en: raw.section_title_en, lv: raw.section_title_lv },
+    place: { en: raw.place_en ?? '', lv: raw.place_lv ?? '' },
+    issueDate: raw.issue_date ?? '',
+    sectionTitle: { en: raw.section_title_en ?? '', lv: raw.section_title_lv ?? '' },
     content: {
-      en: bodyParagraphs(raw.content_en),
-      lv: bodyParagraphs(raw.content_lv),
+      en: bodyParagraphs(raw.content_en ?? ''),
+      lv: bodyParagraphs(raw.content_lv ?? ''),
     },
+    sourceType,
+    documentUrl,
   }
 }
 

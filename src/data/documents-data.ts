@@ -5,10 +5,12 @@ export interface DocumentItem {
   category: DocumentCategory
   title: { en: string; lv: string }
   excerpt: { en: string; lv: string }
-  place: { en: string; lv: string }
-  issueDate: string
-  sectionTitle: { en: string; lv: string }
-  content: { en: string[]; lv: string[] }
+  place?: { en: string; lv: string }
+  issueDate?: string
+  sectionTitle?: { en: string; lv: string }
+  content?: { en: string[]; lv: string[] }
+  sourceType?: 'link' | 'upload'
+  documentUrl?: string
 }
 
 export const documentCategories: { id: DocumentCategory; label: { en: string; lv: string } }[] = [

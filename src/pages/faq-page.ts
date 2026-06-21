@@ -1,5 +1,6 @@
 import { inView, animate } from 'motion'
 import { getSitePages, pickLang } from '../services/site-pages-store'
+import { defaultSitePages } from '../data/site-pages-default'
 
 function pick(isLv: boolean, pair: { en: string; lv: string }): string {
   return pickLang(isLv, pair)
@@ -7,10 +8,10 @@ function pick(isLv: boolean, pair: { en: string; lv: string }): string {
 
 export function renderFaqPage(lang: string): string {
   const isLv = lang === 'lv'
-  const faq = getSitePages().faq
+  const faq = getSitePages().faq ?? defaultSitePages.faq
   const subject = encodeURIComponent(isLv ? 'Jautājums (BUJ)' : 'Question (FAQ)')
 
-  const items = faq.items
+  const items = (Array.isArray(faq.items) ? faq.items : defaultSitePages.faq.items)
     .map((item) => /* html */ `
       <div class="faq-item" id="faq-${item.id}">
         <button
@@ -95,7 +96,7 @@ export function setupFaqForm(lang = localStorage.getItem('language') || 'en'): v
   if (!form) return
 
   const isLv = lang === 'lv'
-  const faqEmail = getSitePages().faq.email
+  const faqEmail = (getSitePages().faq?.email || defaultSitePages.faq.email).trim()
 
   form.addEventListener('submit', (e) => {
     e.preventDefault()

@@ -201,12 +201,12 @@ function buildIndex(lang: string): SearchIndexEntry[] {
   for (const doc of getDocumentItems()) {
     const title = isLv ? doc.title.lv : doc.title.en
     const excerpt = isLv ? doc.excerpt.lv : doc.excerpt.en
-    const contentText = (isLv ? doc.content.lv : doc.content.en).join(' ')
+    const contentText = (isLv ? doc.content?.lv : doc.content?.en)?.join(' ') ?? ''
     entries.push({
       id: `doc-${doc.id}`,
       title,
       subtitle: isLv ? 'Dokuments' : 'Document',
-      route: `document/${doc.id}`,
+      route: 'page/documents',
       kind: 'page',
       terms: [title, excerpt, contentText, doc.id, 'statūti', 'dokumenti', 'documents', doc.category],
     })
